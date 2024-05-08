@@ -1,4 +1,4 @@
-# TriBleProject
+# Trible
 ## About
 The troubleshooting bible or Trible is both a product and a service. The product is a software that contains all the data
 from both past experiences and troubleshooting flowmaps found in all manuals specific to the company using it. Trible is
@@ -33,3 +33,4 @@ A tech who is connected to ensuring that the company or individual who purchased
 A software package that is downloadable, which adds to the aspect of safety. 
 Can be operational without the use of wifi.
 DM using the app (messaging application)
+
