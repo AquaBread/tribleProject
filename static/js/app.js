@@ -1,4 +1,3 @@
-// This function is responsible for searching keywords entered by the user.
 function searchKeywords() { 
     // Get the value of the keywords input field and split it into an array of keywords
     var keywordsInput = document.getElementById("keywords").value;
@@ -16,8 +15,9 @@ function searchKeywords() {
     .then(data => {
         // Get the results container element
         var resultsDiv = document.getElementById("results");
-        resultsDiv.innerHTML = ""; // Clear previous results
-        
+        // Clear previous results before displaying new ones
+        resultsDiv.innerHTML = ""; 
+
         // Check if any results were returned from the server
         if (data.length === 0) {
             resultsDiv.innerHTML = "No results found."; // Display a message if no results were found
@@ -40,4 +40,3 @@ function searchKeywords() {
     })
     .catch(error => console.error('Error:', error)); // Log any errors that occur during the request
 }
-

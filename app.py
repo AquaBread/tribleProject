@@ -1,8 +1,9 @@
 from flask import Flask, render_template, request, jsonify, send_file
 import fitz  # PyMuPDF library for PDF handling
 import re  # Regular expression module for text processing
+import os  # For checking file existence
 
-app = Flask(__name__)  # Initialize Flask application 
+app = Flask(__name__)  # Initialize Flask application
 
 # Searches for keywords in a PDF file using PyMuPDF for OCR.
 def search_keywords_in_pdf(pdf_file, keywords):
@@ -19,23 +20,31 @@ def search_keywords_in_pdf(pdf_file, keywords):
     # List to store all data for all keywords
     all_data = []
 
-    # Open the PDF file
-    pdf_document = fitz.open(pdf_file)
+    # Check if the file exists
+    if not os.path.isfile(pdf_file):
+        print("No such file:", os.path.basename(pdf_file))
+        return all_data
 
-    # Iterate through each keyword
-    for keyword in keywords:
-        # Iterate through each page in the PDF
-        for page_num in range(len(pdf_document)):
-            # Get the current page
-            page = pdf_document.load_page(page_num)
+    try:
+        # Open the PDF file
+        pdf_document = fitz.open(pdf_file)
 
-            # Extract text using OCR
-            text = page.get_text("text")
+        # Iterate through each keyword
+        for keyword in keywords:
+            # Iterate through each page in the PDF
+            for page_num in range(len(pdf_document)):
+                # Get the current page
+                page = pdf_document.load_page(page_num)
 
-            # Check if the keyword is present in the extracted text
-            if keyword.lower() in text.lower():
-                sentences = extract_sentences_with_keyword(text, keyword, page_num)
-                all_data.extend(sentences)  # Append the data to the list
+                # Extract text using OCR
+                text = page.get_text("text")
+
+                # Check if the keyword is present in the extracted text
+                if keyword.lower() in text.lower():
+                    sentences = extract_sentences_with_keyword(text, keyword, page_num)
+                    all_data.extend(sentences)  # Append the data to the list
+    except fitz.FileNotFoundError:
+        print("No such file:", os.path.basename(pdf_file))
 
     return all_data
 
