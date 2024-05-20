@@ -43,15 +43,19 @@ def search_keywords_in_pdf(pdf_file, keywords):
                 if keyword.lower() in text.lower():
                     sentences = extract_sentences_with_keyword(text, keyword, page_num)
                     all_data.extend(sentences)  # Append the data to the list
-    except fitz.FileNotFoundError:
-        print("No such file:", os.path.basename(pdf_file))
+    except Exception as e:
+        print(f"An error occurred: {e}")
 
     return all_data
 
 @app.route('/')
 def index():
-    # Render the HTML template for the main page
-    return render_template('index.html')
+    # Path to the PDF file
+    pdf_file = 'Resources/physText.pdf'
+    # Search keywords in the PDF
+    found_data = search_keywords_in_pdf(pdf_file, [])
+    # Render the HTML template with PDF results
+    return render_template('index.html', pdf_results=found_data)
 
 @app.route('/search', methods=['POST'])
 def search():
@@ -70,10 +74,7 @@ def search():
 def view_pdf():
     page_number = request.args.get('page')  # Get the page number from the query parameters
     pdf_file = 'Resources/physText.pdf'  # Path to the PDF file
-    # Return the specified page in the PDF
-    response = send_file(pdf_file, as_attachment=True, conditional=True, mimetype='application/pdf')
-    response.headers['Cache-Control'] = 'no-store, no-cache, must-revalidate, max-age=0'
-    return response
+    return send_file(pdf_file)
 
 # Run the Flask application
 if __name__ == '__main__':

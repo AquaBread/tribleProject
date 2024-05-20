@@ -1,9 +1,8 @@
-function searchKeywords() { 
-    // Get the value of the keywords input field and split it into an array of keywords
+// Function to search keywords
+function searchKeywords() {
     var keywordsInput = document.getElementById("keywords").value;
     var keywords = keywordsInput.split(",").map(keyword => keyword.trim());
-    
-    // Send a POST request to the server with the list of keywords
+
     fetch('/search', {
         method: 'POST',
         headers: {
@@ -13,30 +12,33 @@ function searchKeywords() {
     })
     .then(response => response.json())
     .then(data => {
-        // Get the results container element
-        var resultsDiv = document.getElementById("results");
-        // Clear previous results before displaying new ones
-        resultsDiv.innerHTML = ""; 
-
-        // Check if any results were returned from the server
-        if (data.length === 0) {
-            resultsDiv.innerHTML = "No results found."; // Display a message if no results were found
-        } else {
-            // Iterate through each result returned from the server
-            data.forEach(result => {
-                // Create a link element for each result containing keyword, page number, and sentence
-                var link = document.createElement("a");
-                link.innerHTML = "<b>Keyword:</b> " + result.Keyword + "<br><b>Page Number:</b> " + result["Page Number"] + "<br><b>Sentence:</b> " + result.Sentence + "<br><br>";
-                // Set the href attribute of the link to trigger the viewPdf function
-                link.href = "javascript:void(0)";
-                link.onclick = function() {
-                    viewPdf(result["Page Number"]); // Pass the page number to viewPdf function when link is clicked
-                };
-                // Append the link to the results container
-                resultsDiv.appendChild(link);
-                resultsDiv.appendChild(document.createElement("br")); // Add a line break for spacing
-            });
-        }
+        displayPdfResults(data);
     })
-    .catch(error => console.error('Error:', error)); // Log any errors that occur during the request
+    .catch(error => console.error('Error:', error));
+}
+
+// Function to display PDF results
+function displayPdfResults(results) {
+    var resultsDiv = document.getElementById("results");
+    resultsDiv.innerHTML = "";
+    if (results.length === 0) {
+        resultsDiv.innerHTML = "No results found.";
+    } else {
+        results.forEach(result => {
+            var link = document.createElement("a");
+            link.innerHTML = "<b>Keyword:</b> " + result.Keyword + "<br><b>Page Number:</b> " + result["Page Number"] + "<br><b>Sentence:</b> " + result.Sentence + "<br><br>";
+            link.href = "#"; // Set a placeholder href
+            link.onclick = function() {
+                viewPdfInNewTab(result["Page Number"]);
+            };
+            resultsDiv.appendChild(link);
+            resultsDiv.appendChild(document.createElement("br"));
+        });
+    }
+}
+
+// Function to view PDF in a new tab
+function viewPdfInNewTab(pageNumber) {
+    var url = `/view_pdf?page=${pageNumber}#page=${pageNumber}&toolbar=0&navpanes=0&scrollbar=0`;
+    window.open(url, '_blank');
 }
