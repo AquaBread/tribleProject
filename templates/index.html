@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+<!DOCTYPE html> 
 <html lang="en">
 <head>
     <meta charset="UTF-8">
@@ -20,21 +20,9 @@
 
     <!-- Division to display search results -->
     <div id="results"></div>
-    
-    <!-- Container for PDF viewer -->
-    <div id="pdfContainer" style="width: 100%; height: 800px; display: none;">
-        <embed id="pdfViewer" style="width: 100%; height: 100%;" type="application/pdf">
-    </div>
 
     <!-- Link to JavaScript file for client-side functionality -->
     <script src="{{ url_for('static', filename='js/app.js') }}"></script>
-
-    <!-- Populate PDF results -->
-    <script>
-        var pdfResults = {{ pdf_results|tojson }};
-        if (pdfResults.length > 0) {
-            displayPdfResults(pdfResults);
-        }
-    </script>
+    
 </body>
 </html>

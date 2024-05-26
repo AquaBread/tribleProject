@@ -1,9 +1,12 @@
-from flask import Flask, render_template, request, jsonify, send_file
+from flask import Flask, render_template, request, jsonify, send_file 
 import fitz  # PyMuPDF library for PDF handling
 import re  # Regular expression module for text processing
 import os  # For checking file existence
 
 app = Flask(__name__)  # Initialize Flask application
+
+# Global variable for PDF file path
+PDF_FILE_PATH = 'Resources/physText.pdf'
 
 # Searches for keywords in a PDF file using PyMuPDF for OCR.
 def search_keywords_in_pdf(pdf_file, keywords):
@@ -50,10 +53,8 @@ def search_keywords_in_pdf(pdf_file, keywords):
 
 @app.route('/')
 def index():
-    # Path to the PDF file
-    pdf_file = 'Resources/physText.pdf'
     # Search keywords in the PDF
-    found_data = search_keywords_in_pdf(pdf_file, [])
+    found_data = search_keywords_in_pdf(PDF_FILE_PATH, [])
     # Render the HTML template with PDF results
     return render_template('index.html', pdf_results=found_data)
 
@@ -63,18 +64,15 @@ def search():
     data = request.get_json()
     # Extract keywords from JSON data
     keywords = data['keywords']
-    # Path to the PDF file
-    pdf_file = 'Resources/physText.pdf'
     # Search for keywords in the PDF
-    found_data = search_keywords_in_pdf(pdf_file, keywords)
+    found_data = search_keywords_in_pdf(PDF_FILE_PATH, keywords)
     # Return JSON response with found data
     return jsonify(found_data)
 
 @app.route('/view_pdf')
 def view_pdf():
     page_number = request.args.get('page')  # Get the page number from the query parameters
-    pdf_file = 'Resources/physText.pdf'  # Path to the PDF file
-    return send_file(pdf_file)
+    return send_file(PDF_FILE_PATH)
 
 # Run the Flask application
 if __name__ == '__main__':
