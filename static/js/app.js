@@ -1,4 +1,4 @@
-// Function to search keywords
+// Function to search keywords 
 function searchKeywords() {
     var keywordsInput = document.getElementById("keywords").value;
     var keywords = keywordsInput.split(",").map(keyword => keyword.trim());
@@ -20,16 +20,16 @@ function searchKeywords() {
 // Function to display PDF results
 function displayPdfResults(results) {
     var resultsDiv = document.getElementById("results");
-    resultsDiv.innerHTML = "";
+    resultsDiv.innerHTML = ""; // Psudo refresh function
     if (results.length === 0) {
         resultsDiv.innerHTML = "No results found.";
     } else {
         results.forEach(result => {
             var link = document.createElement("a");
-            link.innerHTML = "<b>Keyword:</b> " + result.Keyword + "<br><b>Page Number:</b> " + result["Page Number"] + "<br><b>Sentence:</b> " + result.Sentence + "<br><br>";
+            link.innerHTML = "<b>Keyword:</b> " + result.Keyword +  "<br><b>Sentence:</b> " + result.Sentence + "<br><br>";
             link.href = "#"; // Set a placeholder href
             link.onclick = function() {
-                viewPdfInNewTab(result["Page Number"]);
+                intraNavToPdf(result["Page Number"]);
             };
             resultsDiv.appendChild(link);
             resultsDiv.appendChild(document.createElement("br"));
@@ -37,8 +37,8 @@ function displayPdfResults(results) {
     }
 }
 
-// Function to view PDF in a new tab
-function viewPdfInNewTab(pageNumber) {
+// Function to intra navigate to pdf
+function intraNavToPdf(pageNumber) {
     var url = `/view_pdf?page=${pageNumber}#page=${pageNumber}&toolbar=0&navpanes=0&scrollbar=0`;
-    window.open(url, '_blank');
+    window.location.href = url; // opens in same page (window.open(url, '_blank');
 }
