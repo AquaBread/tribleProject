@@ -20,7 +20,7 @@ function searchKeywords() {
 // Function to display PDF results
 function displayPdfResults(results) {
     var resultsDiv = document.getElementById("results");
-    resultsDiv.innerHTML = ""; // Psudo refresh function
+    resultsDiv.innerHTML = ""; // Pseudo refresh function
     if (results.length === 0) {
         resultsDiv.innerHTML = "No results found.";
     } else {

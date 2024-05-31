@@ -1,9 +1,10 @@
-<!DOCTYPE html> 
+<!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Trible</title>
+    <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='css/styles.css') }}">
 </head>
 <body>
     <!-- Heading -->
@@ -18,13 +19,22 @@
     <!-- Button to trigger keyword search -->
     <button onclick="searchKeywords()">Search</button><br><br>
 
-    <!-- Division to display search results -->
-    <div id="results">
+    <!-- Container for two columns -->
+    <div class="container">
+        <!-- Left column to display search results -->
+        <div class="left-column">
+            <div id="results"></div>
+        </div>
+        
+        <!-- Right column for additional content (currently empty) -->
+        <div class="right-column">
+            <!-- Additional content can go here -->
+        </div>
     </div>
 
     <!-- Link to JavaScript file for client-side functionality -->
     <script src="{{ url_for('static', filename='js/app.js') }}"></script>
-
-    
 </body>
 </html>
+
+
