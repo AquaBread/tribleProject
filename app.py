@@ -17,7 +17,7 @@ def extract_sentences(page_num, text):
     sentences = re.split(r'(?<!\w\.\w.)(?<![A-Z][a-z]\.)(?<=\.|\?)\s', text)
     return [{'Page Number': page_num + 1, 'Sentence': sentence} for sentence in sentences]
 
-# Pre-process the PDF to create an index
+# Pre-process the PDF to create an index and sort it by page number
 def preprocess_pdf(pdf_file):
     index = []
     try:
@@ -26,6 +26,8 @@ def preprocess_pdf(pdf_file):
             futures = [executor.submit(extract_sentences, page_num, pdf_document.load_page(page_num).get_text("text")) for page_num in range(len(pdf_document))]
             for future in as_completed(futures):
                 index.extend(future.result())
+        # Sort the index by page number
+        index.sort(key=lambda x: x['Page Number'])
     except Exception as e:
         print(f"An error occurred during preprocessing: {e}")
     return index
