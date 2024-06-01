@@ -1,80 +1,108 @@
-from flask import Flask, render_template, request, jsonify, send_file 
 import fitz  # PyMuPDF library for PDF handling
 import re  # Regular expression module for text processing
 import os  # For checking file existence
+import time  # For measuring execution time
+import pickle  # For saving and loading preprocessed data
+from flask import Flask, render_template, request, jsonify, send_file
+from concurrent.futures import ProcessPoolExecutor, as_completed
 
-app = Flask(__name__)  # Initialize Flask application
+app = Flask(__name__)
 
 # Global variable for PDF file path
 PDF_FILE_PATH = 'Resources/physText.pdf'
+INDEX_FILE_PATH = 'Resources/index.pkl'
 
-# Searches for keywords in a PDF file using PyMuPDF for OCR.
-def search_keywords_in_pdf(pdf_file, keywords):
-    # Extracts sentences containing the keyword from the provided text.
-    def extract_sentences_with_keyword(text, keyword, page_num):
-        # Split text into sentences
-        sentences = re.split(r'(?<!\w\.\w.)(?<![A-Z][a-z]\.)(?<=\.|\?)\s', text)
-        sentences_with_keyword = []
-        for sentence in sentences:
-            if keyword.lower() in sentence.lower():
-                sentences_with_keyword.append({'Keyword': keyword, 'Page Number': page_num + 1, 'Sentence': sentence})
-        return sentences_with_keyword
+# Function to extract text and sentences from a page
+def extract_sentences(page_num, text):
+    sentences = re.split(r'(?<!\w\.\w.)(?<![A-Z][a-z]\.)(?<=\.|\?)\s', text)
+    return [{'Page Number': page_num + 1, 'Sentence': sentence} for sentence in sentences]
 
-    # List to store all data for all keywords
+# Pre-process the PDF to create an index
+def preprocess_pdf(pdf_file):
+    index = []
+    try:
+        pdf_document = fitz.open(pdf_file)
+        with ProcessPoolExecutor() as executor:
+            futures = [executor.submit(extract_sentences, page_num, pdf_document.load_page(page_num).get_text("text")) for page_num in range(len(pdf_document))]
+            for future in as_completed(futures):
+                index.extend(future.result())
+    except Exception as e:
+        print(f"An error occurred during preprocessing: {e}")
+    return index
+
+# Save the preprocessed index to a file
+def save_index_to_file(index, filename):
+    with open(filename, 'wb') as file:
+        pickle.dump(index, file)
+
+# Load the preprocessed index from a file
+def load_index_from_file(filename):
+    with open(filename, 'rb') as file:
+        return pickle.load(file)
+
+# Search for keywords in the preprocessed index
+def search_keywords_in_index(index, keywords):
     all_data = []
+    for entry in index:
+        for keyword in keywords:
+            if keyword.lower() in entry['Sentence'].lower():
+                all_data.append({'Keyword': keyword, 'Page Number': entry['Page Number'], 'Sentence': entry['Sentence']})
+    return all_data
 
-    # Check if the file exists
+# Main function to search keywords in the PDF
+def search_keywords_in_pdf(pdf_file, keywords):
     if not os.path.isfile(pdf_file):
         print("No such file:", os.path.basename(pdf_file))
-        return all_data
+        return [], 0.0
+    
+    start_time = time.time()
 
-    try:
-        # Open the PDF file
-        pdf_document = fitz.open(pdf_file)
+    if os.path.isfile(INDEX_FILE_PATH):
+        index = load_index_from_file(INDEX_FILE_PATH)
+    else:
+        index = preprocess_pdf(pdf_file)
+        save_index_to_file(index, INDEX_FILE_PATH)
+    
+    found_data = search_keywords_in_index(index, keywords)
+    
+    end_time = time.time()
+    duration = end_time - start_time
+    
+    return found_data, duration
 
-        # Iterate through each keyword
-        for keyword in keywords:
-            # Iterate through each page in the PDF
-            for page_num in range(len(pdf_document)):
-                # Get the current page
-                page = pdf_document.load_page(page_num)
-
-                # Extract text using OCR
-                text = page.get_text("text")
-
-                # Check if the keyword is present in the extracted text
-                if keyword.lower() in text.lower():
-                    sentences = extract_sentences_with_keyword(text, keyword, page_num)
-                    all_data.extend(sentences)  # Append the data to the list
-    except Exception as e:
-        print(f"An error occurred: {e}")
-
-    return all_data
+# Initialization function to preprocess the PDF and save the index
+def initialize_index(pdf_file, index_file):
+    print("Initializing index...")
+    if not os.path.isfile(index_file):
+        index = preprocess_pdf(pdf_file)
+        save_index_to_file(index, index_file)
+        print("PDF preprocessing complete and index saved.")
+    else:
+        print("Index file already exists. Skipping preprocessing.")
 
 @app.route('/')
 def index():
-    # Search keywords in the PDF
-    found_data = search_keywords_in_pdf(PDF_FILE_PATH, [])
-    # Render the HTML template with PDF results
-    return render_template('index.html', pdf_results=found_data)
+    return render_template('index.html')
 
 @app.route('/search', methods=['POST'])
 def search():
-    # Get JSON data from request
     data = request.get_json()
-    # Extract keywords from JSON data
     keywords = data['keywords']
-    # Search for keywords in the PDF
-    found_data = search_keywords_in_pdf(PDF_FILE_PATH, keywords)
-    # Return JSON response with found data
-    return jsonify(found_data)
+    found_data, duration = search_keywords_in_pdf(PDF_FILE_PATH, keywords)
+    response = {
+        'results': found_data,
+        'duration': duration
+    }
+    return jsonify(response)
 
 @app.route('/view_pdf')
 def view_pdf():
-    page_number = request.args.get('page')  # Get the page number from the query parameters
+    page_number = request.args.get('page')
     return send_file(PDF_FILE_PATH)
 
-# Run the Flask application
 if __name__ == '__main__':
+    # Initialize the index
+    initialize_index(PDF_FILE_PATH, INDEX_FILE_PATH)
+    
+    # Start the Flask application
     app.run(debug=True)
-

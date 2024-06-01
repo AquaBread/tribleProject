@@ -10,10 +10,14 @@ body {
 .left-column {
     width: 50%;
     padding: 10px;
+    background-color: #f4f4f4; 
 }
 
 .right-column {
     width: 50%;
     padding: 10px;
-    background-color: #f4f4f4; /* Optional: to visually separate the columns */
+}
+
+a.link, a.visited {
+    text-decoration: none;
 }

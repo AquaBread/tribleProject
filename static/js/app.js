@@ -1,4 +1,3 @@
-// Function to search keywords 
 function searchKeywords() {
     var keywordsInput = document.getElementById("keywords").value;
     var keywords = keywordsInput.split(",").map(keyword => keyword.trim());
@@ -12,17 +11,21 @@ function searchKeywords() {
     })
     .then(response => response.json())
     .then(data => {
-        displayPdfResults(data);
+        displayPdfResults(data.results, data.duration);
     })
     .catch(error => console.error('Error:', error));
 }
 
-// Function to display PDF results
-function displayPdfResults(results) {
+function displayPdfResults(results, duration) {
     var resultsDiv = document.getElementById("results");
     resultsDiv.innerHTML = ""; // Pseudo refresh function
+
+    var durationDiv = document.createElement("div");
+    durationDiv.innerHTML = "<b>Search Duration:</b> " + duration.toFixed(2) + " seconds";
+    resultsDiv.appendChild(durationDiv);
+
     if (results.length === 0) {
-        resultsDiv.innerHTML = "No results found.";
+        resultsDiv.innerHTML += "<br>No results found.";
     } else {
         results.forEach(result => {
             var link = document.createElement("a");
@@ -36,6 +39,7 @@ function displayPdfResults(results) {
         });
     }
 }
+
 
 // Function to intra navigate to pdf
 function intraNavToPdf(pageNumber) {
