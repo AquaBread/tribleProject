@@ -27,6 +27,20 @@ h2 {
     display: none;
 }
 
+/********************** Style for Trible Search link **********************/
+.tribble-search-link {
+    color: #333; /* Set text color */
+    text-decoration: none; /* Remove underline */
+    transition: color 0.3s ease; /* Smooth transition for color change */
+}
+
+.tribble-search-link:hover {
+    color: blue; /* Change text color on hover */
+    text-decoration: none; 
+    cursor: pointer; /* Change cursor to pointer on hover */
+}
+
+
 /********************* Search container styles *********************/
 .search-container {
     text-align: center;
