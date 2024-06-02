@@ -24,7 +24,7 @@ function displaySearchInfo(data) {
     searchInfoDiv.innerHTML = `<b>Search Duration:</b> ${data.duration.toFixed(3)} seconds, <b>Results Found:</b> ${data.num_results}`;
 
     // Show the Trible Search heading
-    document.getElementById("trible-search-heading").classList.remove("hidden");
+    document.getElementById("trible-knowledge-heading").classList.remove("hidden");
 }
 
 // Function to display PDF results
