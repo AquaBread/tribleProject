@@ -3,6 +3,7 @@ import re  # Regular expression module for text processing
 import os  # For checking file existence
 import time  # For measuring execution time
 import pickle  # For saving and loading preprocessed data
+import json
 from flask import Flask, render_template, request, jsonify, send_file
 from concurrent.futures import ProcessPoolExecutor, as_completed
 
@@ -83,6 +84,41 @@ def initialize_index(pdf_file, index_file):
         print("PDF preprocessing complete and index saved.")
     else:
         print("Index file already exists. Skipping preprocessing.")
+  
+# Route to handle trible Knowledge submission
+@app.route('/submit_problem', methods=['POST'])
+def submit_problem():
+    data = request.form
+    name = data['name']
+    problem_description = data['problem-description']
+    solution = data['solution']
+    
+    # Create dictionary with form data
+    form_data = {
+        'name': name,
+        'problem_description': problem_description,
+        'solution': solution
+    }
+    
+    # Path to the JSON file
+    json_file_path = 'data/tribleKnowledge/tkData.json'
+    
+    # Load existing JSON data or initialize as empty list
+    try:
+        with open(json_file_path, 'r') as file:
+            json_data = json.load(file)
+    except (FileNotFoundError, json.decoder.JSONDecodeError):
+        json_data = []
+    
+    # Append new form data to the list
+    json_data.append(form_data)
+    
+    # Write updated data to JSON file
+    with open(json_file_path, 'w') as file:
+        json.dump(json_data, file, indent=4)
+    
+    return jsonify({'message': 'Data submitted successfully'})
+
 
 @app.route('/')
 def index():

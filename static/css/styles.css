@@ -1,57 +1,33 @@
-/* Body styles */
+/*********************  Body styles ******************** */
 body {
     font-family: 'Times New Roman', Times, serif;
     margin: 0;
     padding: 0;
 }
 
-/* Heading styles */
+/*********************  Heading styles ******************** */
 h1 {
     text-align: center;
 }
 
-/* Container styles */
+/*********************  Container styles ******************** */
 .container {
     display: flex;
     justify-content: space-between;
+    padding-right: 20px; 
 }
 
-/* Column styles */
-.left-column,
-.right-column {
-    width: 48%;
-}
-
-/* Heading styles */
+/********************* Heading styles *********************/
 h2 {
     text-align: center;
 }
 
-/* Hidden class */
+/********************* Hidden class *********************/
 .hidden {
     display: none;
 }
 
-/* Results styles */
-#results {
-    margin-top: 20px;
-}
-
-#results a {
-    display: block;
-    padding: 10px;
-    background-color: #f9f9f9;
-    border-radius: 5px;
-    margin-bottom: 10px;
-    text-decoration: none;
-    color: #333;
-}
-
-#results a:hover {
-    background-color: #f0f0f0;
-}
-
-/* Search container styles */
+/********************* Search container styles *********************/
 .search-container {
     text-align: center;
     margin-bottom: 20px;
@@ -75,4 +51,85 @@ h2 {
 
 .search-container button:hover {
     background-color: blue;
+}
+
+/********************* Column styles /**********************/
+.left-column {
+    overflow-y: auto;
+    max-height: 100vh;
+    width: 48%; 
+}
+
+.right-column {
+    overflow-y: auto;
+    max-height: 100vh;
+    width: 48%; 
+}
+
+/********************* Results styles *********************/
+#results {
+    margin-top: 20px;
+}
+
+#results a {
+    display: block;
+    padding: 10px;
+    background-color: #f9f9f9;
+    border-radius: 5px;
+    margin-bottom: 10px;
+    text-decoration: none;
+    color: #333;
+}
+
+#results a:hover {
+    background-color: #f0f0f0;
+}
+
+/********************* Trible Knowledge Questionaire styles *********************/
+#questionnaire {
+    background-color: #f9f9f9;
+    padding: 20px;
+    border-radius: 5px;
+}
+
+.questionnaire h3 {
+    margin-top: 0;
+}
+
+.questionnaire label {
+    display: block;
+    margin-bottom: 5px;
+}
+
+.questionnaire input[type="text"],
+.questionnaire textarea {
+    width: 100%;
+    padding: 8px;
+    margin-bottom: 10px;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    box-sizing: border-box;
+}
+
+.questionnaire button {
+    background-color: blue;
+    color: white;
+    padding: 10px 20px;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+}
+
+.questionnaire button:hover {
+    background-color: blue;
+}
+
+#thank-you-message {
+    font-family: 'Times New Roman', Times, serif;
+}
+
+/* Apply the same font to Problem Description and Solution textareas */
+#name, #problem-description,
+#solution {
+    font-family: 'Times New Roman', Times, serif;
 }
