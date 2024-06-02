@@ -22,6 +22,9 @@ function searchKeywords() {
 function displaySearchInfo(data) {
     var searchInfoDiv = document.getElementById("search-info");
     searchInfoDiv.innerHTML = `<b>Search Duration:</b> ${data.duration.toFixed(3)} seconds, <b>Results Found:</b> ${data.num_results}`;
+
+    // Show the Trible Search heading
+    document.getElementById("trible-search-heading").classList.remove("hidden");
 }
 
 // Function to display PDF results
@@ -46,17 +49,6 @@ function displayPdfResults(results) {
         });
     }
 }
-
-// Function to display search info
-function displaySearchInfo(data) {
-    var searchInfoDiv = document.getElementById("search-info");
-    searchInfoDiv.innerHTML = `<b>Search Duration:</b> ${data.duration.toFixed(3)} seconds, <b>Results Found:</b> ${data.num_results}`;
-
-    // Show the Trible Search heading
-    document.getElementById("trible-search-heading").classList.remove("hidden");
-}
-
-
 
 // Function to intra navigate to pdf
 function intraNavToPdf(pageNumber) {
