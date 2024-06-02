@@ -10,24 +10,25 @@
     <!-- Heading -->
     <h1 id="top">Trible Search</h1>
     
-    <!-- Label for input field -->
-    <label for="keywords">Enter Keywords (comma-separated):</label><br>
-
-    <!-- Input field for entering keywords -->
-    <input type="text" id="keywords" name="keywords"><br><br>
-
-    <!-- Button to trigger keyword search -->
-    <button onclick="searchKeywords()">Search</button><br><br>
+    <!-- Input field and search button -->
+    <div class="search-container">
+        <input type="text" id="keywords" name="keywords" placeholder="Enter Keywords (comma-separated)">
+        <button onclick="searchKeywords()">Search</button>
+    </div>
 
     <!-- Container for two columns -->
     <div class="container">
         <!-- Left column to display search results -->
         <div class="left-column">
+            <h2 id="pdf-results-heading" class="hidden">PDF Results</h2>
+            <!-- Container for search information -->
+            <div id="search-info"></div>
             <div id="results"></div>
         </div>
         
         <!-- Right column for additional content (currently empty) -->
         <div class="right-column">
+            <h2 id="trible-search-heading" class="hidden">Trible Search</h2>
             <!-- Additional content can go here -->
         </div>
     </div>

@@ -8,7 +8,7 @@ from concurrent.futures import ProcessPoolExecutor, as_completed
 
 app = Flask(__name__)
 
-# Global variable for PDF file path
+# Global variables for PDF file path and index file path
 PDF_FILE_PATH = 'Resources/physText.pdf'
 INDEX_FILE_PATH = 'Resources/index.pkl'
 
@@ -48,7 +48,9 @@ def search_keywords_in_index(index, keywords):
     for entry in index:
         for keyword in keywords:
             if keyword.lower() in entry['Sentence'].lower():
-                all_data.append({'Keyword': keyword, 'Page Number': entry['Page Number'], 'Sentence': entry['Sentence']})
+                # Highlight the keyword in the sentence
+                highlighted_sentence = re.sub(f"(?i)({re.escape(keyword)})", r"<b>\1</b>", entry['Sentence'], flags=re.IGNORECASE)
+                all_data.append({'Keyword': keyword, 'Page Number': entry['Page Number'], 'Sentence': highlighted_sentence})
     return all_data
 
 # Main function to search keywords in the PDF
@@ -93,7 +95,8 @@ def search():
     found_data, duration = search_keywords_in_pdf(PDF_FILE_PATH, keywords)
     response = {
         'results': found_data,
-        'duration': duration
+        'duration': duration,
+        'num_results': len(found_data)
     }
     return jsonify(response)
 
