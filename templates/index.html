@@ -4,46 +4,55 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Trible</title>
+    <!-- Link to the CSS file for styling -->
     <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='css/styles.css') }}">
 </head>
 <body>
     <!-- Heading -->
     <h1 id="top"><a href="/" class="tribble-search-link">Trible Search</a></h1>
-
-
     
     <!-- Input field and search button -->
     <div class="search-container">
+        <!-- Input for keywords -->
         <input type="text" id="keywords" name="keywords" placeholder="Enter Keywords (comma-separated)">
+        <!-- Button to trigger the searchKeywords function -->
         <button onclick="searchKeywords()">Search</button>
     </div>
 
-    <!-- Container for two columns -->
+    <!-- Container for two columns (left and right) -->
     <div class="container">
         <!-- Left column to display search results -->
         <div class="left-column" id="left-column">
-            <h2 id="pdf-results-heading" class="hidden">PDF Results</h2>
-            <!-- Container for search information -->
+            <!-- Heading for PDF results, initially hidden -->
+            <h2 id="pdf-results-heading" class="hidden"><a href="/" class="tribble-search-link">PDF Results</a></h2>
+            <!-- Container for displaying search information (duration, number of results) -->
             <div id="search-info"></div>
+            <!-- Container for displaying search results -->
             <div id="results"></div>
         </div>
 
         <!-- Right column for additional content -->
         <div class="right-column">
+            <!-- Heading for Trible Knowledge, initially hidden -->
             <h2 id="trible-knowledge-heading" class="hidden">Trible Knowledge</h2>
-            <!-- Questionnaire (initially hidden) -->
+            <!-- Questionnaire section, initially hidden -->
             <div class="questionnaire hidden" id="questionnaire">
                 <h3>Submit Your Problem</h3>
+                <!-- Form for submitting a problem description and solution -->
                 <form id="problem-form" onsubmit="submitProblem(event)">
+                    <!-- Input for user's name -->
                     <label for="name">Your Name:</label>
                     <input type="text" id="name" name="name" required>
+                    <!-- Textarea for problem description -->
                     <label for="problem-description">Problem Description:</label>
                     <textarea id="problem-description" name="problem-description" rows="4" required></textarea>
+                    <!-- Textarea for solution -->
                     <label for="solution">Solution:</label>
                     <textarea id="solution" name="solution" rows="4" required></textarea>
+                    <!-- Submit button for the form -->
                     <button type="submit">Submit</button>
                 </form>
-                <!-- Thank you message (initially hidden) -->
+                <!-- Thank you message after submission, initially hidden -->
                 <div id="thank-you-message" class="hidden">Thank you for your submission!</div>
             </div>
         </div>

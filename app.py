@@ -1,11 +1,13 @@
+from flask import Flask, render_template, request, jsonify, send_file  # Flask web framework
+from concurrent.futures import ProcessPoolExecutor, as_completed  # For parallel processing
+from tqdm import tqdm  # For displaying progress bars
 import fitz  # PyMuPDF library for PDF handling
 import re  # Regular expression module for text processing
 import os  # For checking file existence
 import time  # For measuring execution time
 import pickle  # For saving and loading preprocessed data
-import json
-from flask import Flask, render_template, request, jsonify, send_file
-from concurrent.futures import ProcessPoolExecutor, as_completed
+import json  # For handling JSON data
+import csv  # For CSV file handling
 
 app = Flask(__name__)
 
@@ -15,6 +17,7 @@ INDEX_FILE_PATH = 'Resources/index.pkl'
 
 # Function to extract text and sentences from a page
 def extract_sentences(page_num, text):
+    # Split the text into sentences using regular expressions
     sentences = re.split(r'(?<!\w\.\w.)(?<![A-Z][a-z]\.)(?<=\.|\?)\s', text)
     return [{'Page Number': page_num + 1, 'Sentence': sentence} for sentence in sentences]
 
@@ -22,9 +25,16 @@ def extract_sentences(page_num, text):
 def preprocess_pdf(pdf_file):
     index = []
     try:
-        pdf_document = fitz.open(pdf_file)
+        pdf_document = fitz.open(pdf_file)  # Open the PDF file
+        total_pages = len(pdf_document)  # Get the total number of pages
         with ProcessPoolExecutor() as executor:
-            futures = [executor.submit(extract_sentences, page_num, pdf_document.load_page(page_num).get_text("text")) for page_num in range(len(pdf_document))]
+            futures = []
+            # Display a progress bar while submitting tasks for each page
+            for page_num in tqdm(range(total_pages), desc="Preprocessing PDF", unit="page"):
+                future = executor.submit(extract_sentences, page_num, pdf_document.load_page(page_num).get_text("text"))
+                futures.append(future)
+
+            # Collect results as they complete
             for future in as_completed(futures):
                 index.extend(future.result())
         # Sort the index by page number
@@ -60,18 +70,19 @@ def search_keywords_in_pdf(pdf_file, keywords):
         print("No such file:", os.path.basename(pdf_file))
         return [], 0.0
     
-    start_time = time.time()
+    start_time = time.time()  # Start measuring time
 
+    # Check if the index file already exists
     if os.path.isfile(INDEX_FILE_PATH):
-        index = load_index_from_file(INDEX_FILE_PATH)
+        index = load_index_from_file(INDEX_FILE_PATH)  # Load the index if it exists
     else:
-        index = preprocess_pdf(pdf_file)
-        save_index_to_file(index, INDEX_FILE_PATH)
+        index = preprocess_pdf(pdf_file)  # Preprocess the PDF to create an index
+        save_index_to_file(index, INDEX_FILE_PATH)  # Save the index to a file
     
-    found_data = search_keywords_in_index(index, keywords)
+    found_data = search_keywords_in_index(index, keywords)  # Search for keywords in the index
     
-    end_time = time.time()
-    duration = end_time - start_time
+    end_time = time.time()  # End measuring time
+    duration = end_time - start_time  # Calculate the duration
     
     return found_data, duration
 
@@ -79,56 +90,47 @@ def search_keywords_in_pdf(pdf_file, keywords):
 def initialize_index(pdf_file, index_file):
     print("Initializing index...")
     if not os.path.isfile(index_file):
-        index = preprocess_pdf(pdf_file)
-        save_index_to_file(index, index_file)
+        index = preprocess_pdf(pdf_file)  # Preprocess the PDF if the index file doesn't exist
+        save_index_to_file(index, index_file)  # Save the index to a file
         print("PDF preprocessing complete and index saved.")
     else:
         print("Index file already exists. Skipping preprocessing.")
-  
-# Route to handle trible Knowledge submission
+
+# Route to handle Trible Knowledge submission
 @app.route('/submit_problem', methods=['POST'])
 def submit_problem():
-    data = request.form
+    data = request.form  # Get form data
     name = data['name']
     problem_description = data['problem-description']
     solution = data['solution']
     
-    # Create dictionary with form data
-    form_data = {
-        'name': name,
-        'problem_description': problem_description,
-        'solution': solution
-    }
+    # Path to the CSV file
+    csv_file_path = 'data/tribleKnowledge/tkData.csv'
     
-    # Path to the JSON file
-    json_file_path = 'data/tribleKnowledge/tkData.json'
+    # Check if CSV file exists, if not, create it and write header
+    if not os.path.isfile(csv_file_path):
+        with open(csv_file_path, 'w', newline='') as file:
+            writer = csv.writer(file)
+            writer.writerow(['Name', 'Problem Description', 'Solution'])  # Write header
     
-    # Load existing JSON data or initialize as empty list
-    try:
-        with open(json_file_path, 'r') as file:
-            json_data = json.load(file)
-    except (FileNotFoundError, json.decoder.JSONDecodeError):
-        json_data = []
-    
-    # Append new form data to the list
-    json_data.append(form_data)
-    
-    # Write updated data to JSON file
-    with open(json_file_path, 'w') as file:
-        json.dump(json_data, file, indent=4)
+    # Write form data to CSV file
+    with open(csv_file_path, 'a', newline='') as file:
+        writer = csv.writer(file)
+        writer.writerow([name, problem_description, solution])
     
     return jsonify({'message': 'Data submitted successfully'})
 
-
+# Route to render the index page
 @app.route('/')
 def index():
     return render_template('index.html')
 
+# Route to handle search requests
 @app.route('/search', methods=['POST'])
 def search():
-    data = request.get_json()
+    data = request.get_json()  # Get JSON data from the request
     keywords = data['keywords']
-    found_data, duration = search_keywords_in_pdf(PDF_FILE_PATH, keywords)
+    found_data, duration = search_keywords_in_pdf(PDF_FILE_PATH, keywords)  # Perform the search
     response = {
         'results': found_data,
         'duration': duration,
@@ -136,6 +138,7 @@ def search():
     }
     return jsonify(response)
 
+# Route to view the PDF
 @app.route('/view_pdf')
 def view_pdf():
     page_number = request.args.get('page')
