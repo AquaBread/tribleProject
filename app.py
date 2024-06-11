@@ -59,9 +59,9 @@ def search_keywords_in_index(index, keywords):
     for entry in index:
         for keyword in keywords:
             if keyword.lower() in entry['Sentence'].lower():
-                # Highlight the keyword in the sentence
-                highlighted_sentence = re.sub(f"(?i)({re.escape(keyword)})", r"<b>\1</b>", entry['Sentence'], flags=re.IGNORECASE)
-                all_data.append({'Keyword': keyword, 'Page Number': entry['Page Number'], 'Sentence': highlighted_sentence})
+                # Bolds the keyword in the sentence
+                bold_keyword_in_entence = re.sub(f"(?i)({re.escape(keyword)})", r"<b>\1</b>", entry['Sentence'], flags=re.IGNORECASE)
+                all_data.append({'Keyword': keyword, 'Page Number': entry['Page Number'], 'Sentence': bold_keyword_in_entence})
     return all_data
 
 # Main function to search keywords in the PDF

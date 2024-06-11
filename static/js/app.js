@@ -17,7 +17,7 @@ function searchKeywords() {
     .then(data => {
         // Display the search info and results
         displaySearchInfo(data);
-        displayPdfResults(data.results);
+        displayPdfResults(data.results, keywords);
     })
     .catch(error => console.error('Error:', error));  // Log any errors
 }
@@ -34,7 +34,7 @@ function displaySearchInfo(data) {
 }
 
 // Function to display PDF results
-function displayPdfResults(results) {
+function displayPdfResults(results, keywords) {
     // Get the elements for displaying results and other related elements
     var resultsDiv = document.getElementById("results");
     var leftColumn = document.getElementById("left-column");
@@ -45,7 +45,7 @@ function displayPdfResults(results) {
     resultsDiv.innerHTML = ""; 
     if (results.length === 0) {
         // Display message if no results found
-        resultsDiv.innerHTML = "No results found.";
+        resultsDiv.innerHTML = `No results found for "${keywords.join(', ')}".`;
     } else {
         // Show the PDF Results heading
         document.getElementById("pdf-results-heading").classList.remove("hidden");
@@ -105,6 +105,12 @@ function submitProblem(event) {
         // Display thank you message
         var thankYouMessage = document.getElementById("thank-you-message");
         thankYouMessage.classList.remove("hidden");
+        // Trigger confetti
+        confetti({
+            particleCount: 100,
+            spread: 70,
+            origin: { y: 0.6 }
+        });
         // Clear the form
         document.getElementById("problem-form").reset();
         // Hide thank you message after 3 seconds
