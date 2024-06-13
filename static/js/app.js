@@ -86,14 +86,13 @@ function submitProblem(event) {
     var problemDescription = document.getElementById("problem-description").value;
     var solution = document.getElementById("solution").value;
 
-    // Send a POST request to the /submit_problem endpoint with the form data
+    // Send a POST request to the /submit_problem endpoint with JSON data
     fetch('/submit_problem', {
         method: 'POST',
         headers: {
-            'Content-Type': 'application/x-www-form-urlencoded',
+            'Content-Type': 'application/json',
         },
-        // Convert the form data to URL-encoded format
-        body: new URLSearchParams({
+        body: JSON.stringify({
             'name': name,
             'problem-description': problemDescription,
             'solution': solution

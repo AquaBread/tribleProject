@@ -35,7 +35,7 @@ h2 {
 }
 
 .tribble-search-link:hover {
-    color: blue; /* Change text color on hover */
+    color: rgb(0, 162, 255); /* Change text color on hover */
     text-decoration: none; 
     cursor: pointer; /* Change cursor to pointer on hover */
 }
@@ -64,7 +64,7 @@ h2 {
 }
 
 .search-container button:hover {
-    background-color: blue;
+    background-color: rgb(0, 162, 255);
 }
 
 /********************* Column styles /**********************/

@@ -5,7 +5,6 @@ import fitz  # PyMuPDF library for PDF handling
 import re  # Regular expression module for text processing
 import os  # For checking file existence
 import time  # For measuring execution time
-import pickle  # For saving and loading preprocessed data
 import json  # For handling JSON data
 import csv  # For CSV file handling
 
@@ -13,7 +12,8 @@ app = Flask(__name__)
 
 # Global variables for PDF file path and index file path
 PDF_FILE_PATH = 'Resources/physText.pdf'
-INDEX_FILE_PATH = 'Resources/index.pkl'
+INDEX_FILE_PATH = 'Resources/index.json'
+FORUM_FILE_PATH = 'data/tribleKnowledge/tkData.json'  # JSON file for forum data
 
 # Function to extract text and sentences from a page
 def extract_sentences(page_num, text):
@@ -43,15 +43,15 @@ def preprocess_pdf(pdf_file):
         print(f"An error occurred during preprocessing: {e}")
     return index
 
-# Save the preprocessed index to a file
+# Save the preprocessed index to a JSON file
 def save_index_to_file(index, filename):
-    with open(filename, 'wb') as file:
-        pickle.dump(index, file)
+    with open(filename, 'w') as file:
+        json.dump(index, file)
 
-# Load the preprocessed index from a file
+# Load the preprocessed index from a JSON file
 def load_index_from_file(filename):
-    with open(filename, 'rb') as file:
-        return pickle.load(file)
+    with open(filename, 'r') as file:
+        return json.load(file)
 
 # Search for keywords in the preprocessed index
 def search_keywords_in_index(index, keywords):
@@ -60,8 +60,8 @@ def search_keywords_in_index(index, keywords):
         for keyword in keywords:
             if keyword.lower() in entry['Sentence'].lower():
                 # Bolds the keyword in the sentence
-                bold_keyword_in_entence = re.sub(f"(?i)({re.escape(keyword)})", r"<b>\1</b>", entry['Sentence'], flags=re.IGNORECASE)
-                all_data.append({'Keyword': keyword, 'Page Number': entry['Page Number'], 'Sentence': bold_keyword_in_entence})
+                bold_keyword_in_sentence = re.sub(f"(?i)({re.escape(keyword)})", r"<b>\1</b>", entry['Sentence'], flags=re.IGNORECASE)
+                all_data.append({'Keyword': keyword, 'Page Number': entry['Page Number'], 'Sentence': bold_keyword_in_sentence})
     return all_data
 
 # Main function to search keywords in the PDF
@@ -95,28 +95,36 @@ def initialize_index(pdf_file, index_file):
         print("PDF preprocessing complete and index saved.")
     else:
         print("Index file already exists. Skipping preprocessing.")
+        
+# Save data to the forum JSON file
+def save_forum_data(name, problem_description, solution):
+    forum_data = {
+        'Name': name,
+        'Problem Description': problem_description,
+        'Solution': solution
+    }
+    forum_list = load_forum_data()
+    forum_list.append(forum_data)
+    with open(FORUM_FILE_PATH, 'w') as f:
+        json.dump(forum_list, f, indent=4)
+        
+# Load forum data from the JSON file
+def load_forum_data():
+    if os.path.exists(FORUM_FILE_PATH):
+        with open(FORUM_FILE_PATH, 'r') as f:
+            return json.load(f)
+    else:
+        return []
 
 # Route to handle Trible Knowledge submission
 @app.route('/submit_problem', methods=['POST'])
 def submit_problem():
-    data = request.form  # Get form data
+    data = request.json  # Get JSON data from the request
     name = data['name']
     problem_description = data['problem-description']
     solution = data['solution']
     
-    # Path to the CSV file
-    csv_file_path = 'data/tribleKnowledge/tkData.csv'
-    
-    # Check if CSV file exists, if not, create it and write header
-    if not os.path.isfile(csv_file_path):
-        with open(csv_file_path, 'w', newline='') as file:
-            writer = csv.writer(file)
-            writer.writerow(['Name', 'Problem Description', 'Solution'])  # Write header
-    
-    # Write form data to CSV file
-    with open(csv_file_path, 'a', newline='') as file:
-        writer = csv.writer(file)
-        writer.writerow([name, problem_description, solution])
+    save_forum_data(name, problem_description, solution)  # Save data to the forum JSON file
     
     return jsonify({'message': 'Data submitted successfully'})
 
@@ -150,3 +158,4 @@ if __name__ == '__main__':
     
     # Start the Flask application
     app.run(debug=True)
+
