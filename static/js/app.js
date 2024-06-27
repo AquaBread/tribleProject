@@ -2,7 +2,7 @@ function searchKeywords() {
     var keywordsInput = document.getElementById("keywords").value;
     var keywords = keywordsInput.split(",").map(keyword => keyword.trim());
 
-    fetch('/search', {
+    fetch('/search', { 
         method: 'POST',
         headers: {
             'Content-Type': 'application/json',
