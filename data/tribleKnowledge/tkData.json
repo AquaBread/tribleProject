@@ -7,17 +7,31 @@
         "Chapter Page": "274"
     },
     {
-        "Name": "Miguel",
-        "Problem Description": "Harmonic oscillator is malfunctioning",
-        "Solution": "Supply it with enough quantum energy from the hamiltonian",
-        "Chapter": "9 Harmonic Oscillator",
-        "Chapter Page": "299"
-    },
-    {
         "Name": "Sam",
         "Problem Description": "Trible team's efficiency ",
         "Solution": "Copious amount of food (chipotle, canes)",
         "Chapter": "16 Modern Applications of Quantum Mechanics",
         "Chapter Page": "526"
+    },
+    {
+        "Name": "Nathaniel",
+        "Problem Description": "Will be out on vacation, at Yellowstone Park, for 3 weeks. ",
+        "Solution": "Make Sammy type all the notes for 3 weeks",
+        "Chapter": "14 Time-Dependent Perturbation Theory",
+        "Chapter Page": "469"
+    },
+    {
+        "Name": "cord",
+        "Problem Description": "quantum oscillator aint work",
+        "Solution": "add motre quantum energy",
+        "Chapter": "9 Harmonic Oscillator",
+        "Chapter Page": "299"
+    },
+    {
+        "Name": "Brian ",
+        "Problem Description": "Help",
+        "Solution": "google",
+        "Chapter": "",
+        "Chapter Page": ""
     }
 ]

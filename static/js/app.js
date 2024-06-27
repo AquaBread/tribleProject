@@ -1,27 +1,3 @@
-document.addEventListener('DOMContentLoaded', (event) => {
-    fetchTOC();
-});
-
-function fetchTOC() {
-    fetch('/get_toc')
-        .then(response => response.json())
-        .then(data => {
-            populateTOCDropdown(data);
-        })
-        .catch(error => console.error('Error fetching TOC:', error));
-}
-
-function populateTOCDropdown(toc) {
-    var tocDropdown = document.getElementById("toc-dropdown");
-    toc.forEach(item => {
-        var option = document.createElement("option");
-        option.value = item.Title;
-        option.textContent = `Chapter ${item.Title}`;
-        option.setAttribute('data-page', item.Page); // Add the page number as a data attribute
-        tocDropdown.appendChild(option);
-    });
-}
-
 function searchKeywords() {
     var keywordsInput = document.getElementById("keywords").value;
     var keywords = keywordsInput.split(",").map(keyword => keyword.trim());
@@ -45,20 +21,22 @@ function displaySearchInfo(data) {
     var searchInfoDiv = document.getElementById("search-info");
     searchInfoDiv.innerHTML = `<b>Search Duration:</b> ${data.duration.toFixed(3)} seconds <br><b>Results Found:</b> ${data.num_results}`;
     document.getElementById("trible-knowledge-heading").classList.remove("hidden");
+    document.getElementById("pdf-results-heading").classList.remove("hidden");
 }
 
 function displayResults(tkResults, pdfResults, keywords) {
-    var resultsDiv = document.getElementById("results");
-    var leftColumn = document.getElementById("left-column");
-    var questionnaire = document.getElementById("questionnaire");
+    var tkResultsDiv = document.getElementById("tk-results");
+    var pdfResultsDiv = document.getElementById("pdf-results");
     var tribleKnowledgeHeading = document.getElementById("trible-knowledge-heading");
+    var pdfResultsHeading = document.getElementById("pdf-results-heading");
 
-    resultsDiv.innerHTML = "";
+    tkResultsDiv.innerHTML = "";
+    pdfResultsDiv.innerHTML = "";
     if (tkResults.length === 0 && pdfResults.length === 0) {
-        resultsDiv.innerHTML = `No results found for "${keywords.join(', ')}".`;
+        tkResultsDiv.innerHTML = `No results found for "${keywords.join(', ')}".`;
     } else {
-        document.getElementById("pdf-results-heading").classList.remove("hidden");
-        leftColumn.classList.add("scrollable");
+        tribleKnowledgeHeading.classList.remove("hidden");
+        pdfResultsHeading.classList.remove("hidden");
 
         tkResults.forEach(result => {
             var link = document.createElement("a");
@@ -73,8 +51,8 @@ function displayResults(tkResults, pdfResults, keywords) {
             link.onclick = function() {
                 intraNavToPdf(result['Chapter Page']);
             };
-            resultsDiv.appendChild(link);
-            resultsDiv.appendChild(document.createElement("br"));
+            tkResultsDiv.appendChild(link);
+            tkResultsDiv.appendChild(document.createElement("br"));
         });
 
         pdfResults.forEach(result => {
@@ -87,12 +65,11 @@ function displayResults(tkResults, pdfResults, keywords) {
             link.onclick = function() {
                 intraNavToPdf(result['Page Number']);
             };
-            resultsDiv.appendChild(link);
-            resultsDiv.appendChild(document.createElement("br"));
+            pdfResultsDiv.appendChild(link);
+            pdfResultsDiv.appendChild(document.createElement("br"));
         });
 
-        questionnaire.classList.remove("hidden");
-        tribleKnowledgeHeading.classList.remove("hidden");
+        document.getElementById("questionnaire").classList.remove("hidden");
     }
 }
 
@@ -101,58 +78,6 @@ function intraNavToPdf(pageNumber) {
     window.location.href = url;
 }
 
-function submitProblem(event) {
-    event.preventDefault();
-
-    var name = document.getElementById("name").value;
-    var problemDescription = document.getElementById("problem-description").value;
-    var solution = document.getElementById("solution").value;
-    var selectedChapter = document.getElementById("toc-dropdown").value;
-    var chapterPage = document.getElementById("toc-dropdown").options[document.getElementById("toc-dropdown").selectedIndex].getAttribute('data-page'); // Get the page number from the selected option
-
-    if (!selectedChapter) {
-        alert("Chapter selection is required.");
-        return;
-    }
-
-    fetch('/submit_problem', {
-        method: 'POST',
-        headers: {
-            'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-            'name': name,
-            'problem-description': problemDescription,
-            'solution': solution,
-            'chapter-name': selectedChapter,
-            'chapter-page': chapterPage // Include chapter page number in the request
-        }),
-    })
-    .then(response => {
-        if (response.ok) {
-            return response.json();
-        } else {
-            return response.json().then(data => {
-                throw new Error(data.error);
-            });
-        }
-    })
-    .then(data => {
-        console.log(data.message);
-        var thankYouMessage = document.getElementById("thank-you-message");
-        thankYouMessage.classList.remove("hidden");
-        confetti({
-            particleCount: 100,
-            spread: 70,
-            origin: { y: 0.6 }
-        });
-        document.getElementById("problem-form").reset();
-        setTimeout(function() {
-            thankYouMessage.classList.add("hidden");
-        }, 2000);
-    })
-    .catch(error => {
-        console.error('Error:', error);
-        alert(error.message);
-    });
+function openForum() {
+    window.open("/forum", "Forum", "width=600,height=600");
 }

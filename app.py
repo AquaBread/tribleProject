@@ -187,9 +187,6 @@ def submit_problem():
     chapter_name = data['chapter-name']
     chapter_page = data['chapter-page']
 
-    if not chapter_name:
-        return jsonify({'error': 'Chapter selection is required'}), 400
-
     save_forum_data(name, problem_description, solution, chapter_name, chapter_page)
     return jsonify({'message': 'Data submitted successfully'})
 
@@ -217,11 +214,16 @@ def search():
     }
     return jsonify(response)
 
+
 # Route to view the PDF
 @app.route('/view_pdf')
 def view_pdf():
     page_number = request.args.get('page')
     return send_file(PDF_FILE_PATH)
+
+@app.route('/forum')
+def forum():
+    return render_template('forum.html')
 
 if __name__ == '__main__':
     # Initialize the index
@@ -229,4 +231,3 @@ if __name__ == '__main__':
 
     # Start the Flask application
     app.run(debug=True)
-

@@ -70,22 +70,30 @@ h2 {
 /********************* Column styles /**********************/
 .left-column {
     overflow-y: auto;
-    max-height: 100vh;
-    width: 48%; 
+    float: left;
+    width: 48%; /* Adjust width as needed */
+    max-height: 600px; /* Set a max-height to enable scrolling */
+    margin-right: 2%;
 }
 
 .right-column {
     overflow-y: auto;
-    max-height: 100vh;
-    width: 48%; 
+    float: left;
+    width: 48%; /* Adjust width as needed */
+    max-height: 600px; /* Set a max-height to enable scrolling */
+    margin-left: 2%;
 }
 
-/********************* Results styles *********************/
-#results {
+.results-container {
     margin-top: 20px;
 }
 
-#results a {
+.container {
+    display: flex;
+    justify-content: space-between;
+}
+
+#pdf-results a {
     display: block;
     padding: 10px;
     background-color: #f9f9f9;
@@ -95,28 +103,62 @@ h2 {
     color: #333;
 }
 
-#results a:hover {
+#pdf-results a:hover {
     background-color: #f0f0f0;
 }
 
-/********************* Trible Knowledge Questionaire styles *********************/
-#questionnaire {
+#trible-knowledge-heading {
+    text-align: center;
+}
+
+.hidden {
+    display: none;
+}
+
+
+/********************* Results styles *********************/
+#results {
+    margin-top: 20px;
+}
+
+#results a,
+#tk-results a {
+    display: block;
+    padding: 10px;
+    background-color: #f9f9f9;
+    border-radius: 5px;
+    margin-bottom: 10px;
+    text-decoration: none;
+    color: #333;
+}
+
+#results a:hover,
+#tk-results a:hover {
+    background-color: #f0f0f0;
+}
+
+.scrollable {
+    overflow-y: auto;
+}
+
+/********************* Trible Knowledge Forum styles *********************/
+#forum-form {
     background-color: #f9f9f9;
     padding: 20px;
     border-radius: 5px;
 }
 
-.questionnaire h3 {
+#forum-form h2 {
     margin-top: 0;
 }
 
-.questionnaire label {
+#forum-form label {
     display: block;
     margin-bottom: 5px;
 }
 
-.questionnaire input[type="text"],
-.questionnaire textarea {
+#forum-form input[type="text"],
+#forum-form textarea {
     width: 100%;
     padding: 8px;
     margin-bottom: 10px;
@@ -125,7 +167,7 @@ h2 {
     box-sizing: border-box;
 }
 
-.questionnaire button {
+#forum-form button {
     background-color: blue;
     color: white;
     padding: 10px 20px;
@@ -134,8 +176,8 @@ h2 {
     cursor: pointer;
 }
 
-.questionnaire button:hover {
-    background-color: blue;
+#forum-form button:hover {
+    background-color: darkblue;
 }
 
 #thank-you-message {
