@@ -1,6 +1,7 @@
 from flask import Flask, render_template, request, jsonify, send_file # Flask web framework
 from concurrent.futures import ProcessPoolExecutor, as_completed # For parallel processing
 from tqdm import tqdm # For displaying progress bars
+from config import SECRET_KEY
 import fitz # PyMuPDF library for PDF handling
 import re # Regular expression module for text processing
 import os # For checking file existence
