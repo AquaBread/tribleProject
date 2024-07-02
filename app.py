@@ -9,7 +9,7 @@ import time # For measuring execution time
 import json # For handling JSON data
 import csv # For CSV file handling
 
-app = Flask(__name__)
+app = Flask(__name__) 
 
 # Global variables for PDF file path and index file path
 PDF_FILE_PATH = 'Resources/physText.pdf'
