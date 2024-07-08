@@ -7,7 +7,7 @@
     <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='css/styles.css') }}">
     <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.4.0/dist/confetti.browser.min.js"></script>
 </head>
-<body> 
+<body>
     <h1 id="top"><a href="/" class="tribble-search-link">Trible Search</a></h1>
 
     <div class="search-container">
@@ -22,11 +22,10 @@
         <div class="left-column scrollable">
             <h2 id="pdf-results-heading" class="hidden"><a href="/" class="tribble-search-link">PDF Results</a></h2>
             <div id="pdf-results">
-                
                 <div id="results"></div>
             </div>
         </div>
-        
+
         <div class="right-column scrollable">
             <h2 id="trible-knowledge-heading" class="hidden">Trible Knowledge</h2>
             <div id="tk-results" class="results-container"></div>
@@ -36,4 +35,3 @@
     <script src="{{ url_for('static', filename='js/app.js') }}"></script>
 </body>
 </html>
-
