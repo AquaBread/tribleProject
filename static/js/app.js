@@ -81,37 +81,42 @@ function displayResults(tkResults, pdfResults, keywords) {
 
                 const keywordResults = pdfResults.filter(result => result.Keyword.toLowerCase() === keyword.toLowerCase());
 
-                keywordHeading.innerText = `Results for "${keyword}"`;
-                keywordHeading.classList.add("keyword-heading");
+                if (keywordResults.length > 0) {
+                    keywordHeading.innerText = `Results for "${keyword}"`;
+                    keywordHeading.classList.add("keyword-heading");
 
-                // Toggle display on click only if there's more than one keyword
-                if (keywords.length > 1) {
-                    keywordHeading.onclick = () => {
-                        keywordResultsDiv.style.display = keywordResultsDiv.style.display === "none" ? "block" : "none";
-                    };
+                    // Toggle display on click only if there's more than one keyword
+                    if (keywords.length > 1) {
+                        keywordHeading.onclick = () => {
+                            keywordResultsDiv.style.display = keywordResultsDiv.style.display === "none" ? "block" : "none";
+                        };
+                    }
+
+                    keywordResults.forEach(result => {
+                        const resultLink = document.createElement("a");
+                        resultLink.innerHTML = `
+                            <b>Keyword:</b> ${result.Keyword}<br>
+                            <b>Sentence:</b> ${result.Sentence}<br>
+                        `;
+                        resultLink.href = "#";
+                        resultLink.onclick = () => intraNavToPdf(result['Page Number']);
+                        keywordResultsDiv.appendChild(resultLink);
+                        keywordResultsDiv.appendChild(document.createElement("br"));
+                    });
+
+                    keywordDiv.appendChild(keywordHeading);
+                    keywordDiv.appendChild(keywordResultsDiv);
+                    pdfResultsDiv.appendChild(keywordDiv);
+                } else {
+                    pdfResultsDiv.innerHTML += `No results found for "${keyword}".<br>`;
                 }
-                
-                keywordResults.forEach(result => {
-                    const resultLink = document.createElement("a");
-                    resultLink.innerHTML = `
-                        <b>Keyword:</b> ${result.Keyword}<br>
-                        <b>Sentence:</b> ${result.Sentence}<br>
-                    `;
-                    resultLink.href = "#";
-                    resultLink.onclick = () => intraNavToPdf(result['Page Number']);
-                    keywordResultsDiv.appendChild(resultLink);
-                    keywordResultsDiv.appendChild(document.createElement("br"));
-                });
-
-                keywordDiv.appendChild(keywordHeading);
-                keywordDiv.appendChild(keywordResultsDiv);
-                pdfResultsDiv.appendChild(keywordDiv);
             });
         } else {
             pdfResultsDiv.innerHTML = `No results found for "${keywords.join(', ')}".`;
         }
     }
 }
+
 
 // Function to navigate to a specific page in the PDF
 function intraNavToPdf(pageNumber) {
