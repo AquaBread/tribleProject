@@ -36,7 +36,7 @@ def preprocess_pdf(pdf_file):
         index.sort(key=lambda x: x['Page Number'])
     except Exception as e:
         print(f"An error occurred during preprocessing: {e}")
-    return index
+    return {'physics': index}
 
 # Save the preprocessed index to a JSON file
 def save_index_to_file(index, filename):
@@ -51,7 +51,7 @@ def load_index_from_file(filename):
 # Search for keywords in the preprocessed index
 def search_keywords_in_index(index, keywords):
     all_data = []
-    for entry in index:
+    for entry in index['physics']:
         for keyword in keywords:
             if keyword.lower() in entry['Sentence'].lower():
                 bold_keyword_in_sentence = re.sub(f"(?i)({re.escape(keyword)})", r"<b>\1</b>", entry['Sentence'], flags=re.IGNORECASE)
@@ -225,3 +225,4 @@ if __name__ == '__main__':
 
     # Start the Flask application
     app.run(debug=True)
+
