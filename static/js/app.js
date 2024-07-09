@@ -27,6 +27,17 @@ function displaySearchInfo(data) {
     document.getElementById("pdf-results-heading").classList.remove("hidden");
 }
 
+// Function to navigate to a specific page in the PDF
+function intraNavToPdf(pageNumber) {
+    const url = `/view_pdf?page=${pageNumber}#page=${pageNumber}&toolbar=0&navpanes=0&scrollbar=0`;
+    window.location.href = url;
+}
+
+// Function to open the forum page
+function openForum() {
+    window.open("/forum", "Forum", "width=600,height=600");
+}
+
 // Function to display results
 function displayResults(tkResults, pdfResults, keywords) {
     const tkResultsDiv = document.getElementById("tk-results");
@@ -37,94 +48,125 @@ function displayResults(tkResults, pdfResults, keywords) {
     tkResultsDiv.innerHTML = "";
     pdfResultsDiv.innerHTML = "";
 
-    if (tkResults.length === 0 && pdfResults.length === 0) {
-        const noResultsMessage = `No results found for "${keywords.join(', ')}".`;
-        tkResultsDiv.innerHTML = noResultsMessage;
-        pdfResultsDiv.innerHTML = noResultsMessage;
-    } else {
-        if (tkResults.length > 0) {
-            tribleKnowledgeHeading.classList.remove("hidden");
-            tkResults.forEach(result => {
-                const link = document.createElement("a");
-                link.innerHTML = `
-                    <b>Trible Knowledge</b><br>
-                    <b>Submitted by:</b> ${result.Name}<br>
-                    <b>Problem Description:</b> ${result['Problem Description']}<br>
-                    <b>Solution:</b> ${result.Solution}<br>
-                    <b>Chapter:</b> ${result.Chapter}<br>
-                `;
-                link.href = "#";
-                link.onclick = () => intraNavToPdf(result['Chapter Page']);
-                tkResultsDiv.appendChild(link);
-                tkResultsDiv.appendChild(document.createElement("br"));
-            });
-        } else {
-            tkResultsDiv.innerHTML = `No results found for "${keywords.join(', ')}".`;
-        }
+    let tkResultsFound = false;
+    let pdfResultsFound = false;
 
-        if (pdfResults.length > 0) {
-            pdfResultsHeading.classList.remove("hidden");
-
-            // Group results by keywords
-            keywords.forEach(keyword => {
-                const keywordDiv = document.createElement("div");
-                const keywordHeading = document.createElement("h3");
-                const keywordResultsDiv = document.createElement("div");
-                keywordResultsDiv.classList.add("keyword-results");
-
-                // Automatically reveal results if there's only one keyword
-                if (keywords.length === 1) {
-                    keywordResultsDiv.style.display = "block";
-                } else {
-                    keywordResultsDiv.style.display = "none"; // Hide initially
-                }
-
-                const keywordResults = pdfResults.filter(result => result.Keyword.toLowerCase() === keyword.toLowerCase());
-
-                if (keywordResults.length > 0) {
-                    keywordHeading.innerText = `Results for "${keyword}"`;
-                    keywordHeading.classList.add("keyword-heading");
-
-                    // Toggle display on click only if there's more than one keyword
-                    if (keywords.length > 1) {
-                        keywordHeading.onclick = () => {
-                            keywordResultsDiv.style.display = keywordResultsDiv.style.display === "none" ? "block" : "none";
-                        };
-                    }
-
-                    keywordResults.forEach(result => {
-                        const resultLink = document.createElement("a");
-                        resultLink.innerHTML = `
-                            <b>Keyword:</b> ${result.Keyword}<br>
-                            <b>Sentence:</b> ${result.Sentence}<br>
-                        `;
-                        resultLink.href = "#";
-                        resultLink.onclick = () => intraNavToPdf(result['Page Number']);
-                        keywordResultsDiv.appendChild(resultLink);
-                        keywordResultsDiv.appendChild(document.createElement("br"));
-                    });
-
-                    keywordDiv.appendChild(keywordHeading);
-                    keywordDiv.appendChild(keywordResultsDiv);
-                    pdfResultsDiv.appendChild(keywordDiv);
-                } else {
-                    pdfResultsDiv.innerHTML += `No results found for "${keyword}".<br>`;
-                }
-            });
-        } else {
-            pdfResultsDiv.innerHTML = `No results found for "${keywords.join(', ')}".`;
-        }
+    // Function to strip HTML tags
+    function stripHtmlTags(str) {
+        return str.replace(/<\/?[^>]+(>|$)/g, "");
     }
-}
 
+    // Display Trible Knowledge Results
+    if (tkResults.length > 0) {
+        tribleKnowledgeHeading.classList.remove("hidden");
 
-// Function to navigate to a specific page in the PDF
-function intraNavToPdf(pageNumber) {
-    const url = `/view_pdf?page=${pageNumber}#page=${pageNumber}&toolbar=0&navpanes=0&scrollbar=0`;
-    window.location.href = url;
-}
+        keywords.forEach(keyword => {
+            const keywordDiv = document.createElement("div");
+            const keywordHeading = document.createElement("h3");
+            const keywordResultsDiv = document.createElement("div");
+            keywordResultsDiv.classList.add("keyword-results");
 
-// Function to open the forum page
-function openForum() {
-    window.open("/forum", "Forum", "width=600,height=600");
+            if (keywords.length === 1) {
+                keywordResultsDiv.style.display = "block";
+            } else {
+                keywordResultsDiv.style.display = "none";
+            }
+
+            const keywordResults = tkResults.filter(result => {
+                const problemDescription = stripHtmlTags(result['Problem Description']);
+                const solution = stripHtmlTags(result.Solution);
+                return problemDescription.toLowerCase().includes(keyword.toLowerCase()) || solution.toLowerCase().includes(keyword.toLowerCase());
+            });
+
+            if (keywordResults.length > 0) {
+                tkResultsFound = true;
+                keywordHeading.innerText = `Results for "${keyword}"`;
+                keywordHeading.classList.add("keyword-heading");
+
+                if (keywords.length > 1) {
+                    keywordHeading.onclick = () => {
+                        keywordResultsDiv.style.display = keywordResultsDiv.style.display === "none" ? "block" : "none";
+                    };
+                }
+
+                keywordResults.forEach(result => {
+                    const resultDiv = document.createElement("div");
+                    resultDiv.classList.add("result-item");
+                    resultDiv.innerHTML = `
+                        <b>Submitted by:</b> ${result.Name}<br>
+                        <b>Problem Description:</b> ${result['Problem Description']}<br>
+                        <b>Solution:</b> ${result.Solution}<br>
+                        <b>Chapter:</b> ${result.Chapter}<br>
+                    `;
+                    keywordResultsDiv.appendChild(resultDiv);
+                });
+
+                keywordDiv.appendChild(keywordHeading);
+                keywordDiv.appendChild(keywordResultsDiv);
+                tkResultsDiv.appendChild(keywordDiv);
+            }
+        });
+
+        if (!tkResultsFound && keywords.length === 1) {
+            tkResultsDiv.innerHTML = `No results found for "${keywords[0]}".`;
+        }
+    } else {
+        tkResultsDiv.innerHTML = `No results found for "${keywords.join(', ')}".`;
+    }
+
+    // Display PDF Results
+    if (pdfResults.length > 0) {
+        pdfResultsHeading.classList.remove("hidden");
+
+        keywords.forEach(keyword => {
+            const keywordDiv = document.createElement("div");
+            const keywordHeading = document.createElement("h3");
+            const keywordResultsDiv = document.createElement("div");
+            keywordResultsDiv.classList.add("keyword-results");
+
+            if (keywords.length === 1) {
+                keywordResultsDiv.style.display = "block";
+            } else {
+                keywordResultsDiv.style.display = "none";
+            }
+
+            const keywordResults = pdfResults.filter(result => {
+                return result.Keyword && result.Keyword.toLowerCase().includes(keyword.toLowerCase());
+            });
+
+            if (keywordResults.length > 0) {
+                pdfResultsFound = true;
+                keywordHeading.innerText = `Results for "${keyword}"`;
+                keywordHeading.classList.add("keyword-heading");
+
+                if (keywords.length > 1) {
+                    keywordHeading.onclick = () => {
+                        keywordResultsDiv.style.display = keywordResultsDiv.style.display === "none" ? "block" : "none";
+                    };
+                }
+
+                keywordResults.forEach(result => {
+                    const link = document.createElement("a");
+                    link.innerHTML = `
+                        <b>Keyword:</b> ${result.Keyword}<br>
+                        <b>Sentence:</b> ${result.Sentence}<br>
+                    `;
+                    link.href = "#";
+                    link.onclick = () => intraNavToPdf(result['Page Number']);
+                    keywordResultsDiv.appendChild(link);
+                    keywordResultsDiv.appendChild(document.createElement("br"));
+                });
+
+                keywordDiv.appendChild(keywordHeading);
+                keywordDiv.appendChild(keywordResultsDiv);
+                pdfResultsDiv.appendChild(keywordDiv);
+            }
+        });
+
+        if (!pdfResultsFound && keywords.length === 1) {
+            pdfResultsDiv.innerHTML = `No results found for "${keywords[0]}".`;
+        }
+    } else {
+        pdfResultsDiv.innerHTML = `No results found for "${keywords.join(', ')}".`;
+    }
 }

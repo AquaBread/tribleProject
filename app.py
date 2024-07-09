@@ -11,6 +11,8 @@ app = Flask(__name__)
 
 # Global variables for PDF file path and index file path
 PDF_FILE_PATH = 'Resources/physText.pdf'
+#PDF_FILE_PATH = 'Resources/eldText.pdf'
+#PDF_FILE_PATH = 'Resources/camryManual.pdf'
 INDEX_FILE_PATH = 'Resources/index.json'
 FORUM_FILE_PATH = 'data/tribleKnowledge/tkData.json'  # JSON file for forum data
 
