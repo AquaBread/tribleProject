@@ -56,6 +56,12 @@ function displayResults(tkResults, pdfResults, keywords) {
         return str.replace(/<\/?[^>]+(>|$)/g, "");
     }
 
+    // Function to bold the keyword in the sentence
+    function boldKeyword(sentence, keyword) {
+        const regex = new RegExp(`(${keyword})`, "gi");
+        return sentence.replace(regex, "<b>$1</b>");
+    }
+
     // Display Trible Knowledge Results
     if (tkResults.length > 0) {
         tribleKnowledgeHeading.classList.remove("hidden");
@@ -94,8 +100,8 @@ function displayResults(tkResults, pdfResults, keywords) {
                     resultDiv.classList.add("result-item");
                     resultDiv.innerHTML = `
                         <b>Submitted by:</b> ${result.Name}<br>
-                        <b>Problem Description:</b> ${result['Problem Description']}<br>
-                        <b>Solution:</b> ${result.Solution}<br>
+                        <b>Problem Description:</b> ${boldKeyword(result['Problem Description'], keyword)}<br>
+                        <b>Solution:</b> ${boldKeyword(result.Solution, keyword)}<br>
                         <b>Chapter:</b> ${result.Chapter}<br>
                     `;
                     keywordResultsDiv.appendChild(resultDiv);
@@ -148,8 +154,7 @@ function displayResults(tkResults, pdfResults, keywords) {
                 keywordResults.forEach(result => {
                     const link = document.createElement("a");
                     link.innerHTML = `
-                        <b>Keyword:</b> ${result.Keyword}<br>
-                        <b>Sentence:</b> ${result.Sentence}<br>
+                        ${boldKeyword(result.Sentence, keyword)}<br>
                     `;
                     link.href = "#";
                     link.onclick = () => intraNavToPdf(result['Page Number']);
