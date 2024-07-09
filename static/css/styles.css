@@ -134,3 +134,37 @@ h1, h2 {
 #thank-you-message, #name, #problem-description, #solution {
     font-family: 'Times New Roman', Times, serif;
 }
+
+/********************* Styles for the clickable keyword headings ***********************/
+.keyword-heading {
+    cursor: pointer;
+    color: blue; /* Bootstrap primary color for a nice blue */
+    text-decoration: none;
+    font-weight: bold;
+    margin: 10px 0;
+    transition: color 0.3s, transform 0.3s;
+
+    display: block;
+    padding: 10px;
+    background-color: #f9f9f9;
+    border-radius: 5px;
+    margin-bottom: 10px;
+}
+
+.keyword-heading:hover {
+    color: rgb(0, 162, 255); /* Darker blue on hover */
+    background-color: #f0f0f0;
+}
+
+/* Styles for the keyword results container */
+.keyword-results {
+    margin-left: 20px;
+    margin-bottom: 10px;
+    border-left: 2px solid blue;
+    padding-left: 10px;
+}
+
+/* General container styles */
+.results-container {
+    margin-top: 20px;
+}

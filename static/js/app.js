@@ -64,23 +64,51 @@ function displayResults(tkResults, pdfResults, keywords) {
 
         if (pdfResults.length > 0) {
             pdfResultsHeading.classList.remove("hidden");
-            pdfResults.forEach(result => {
-                const link = document.createElement("a");
-                link.innerHTML = `
-                    <b>Keyword:</b> ${result.Keyword}<br>
-                    <b>Sentence:</b> ${result.Sentence}<br>
-                `;
-                link.href = "#";
-                link.onclick = () => intraNavToPdf(result['Page Number']);
-                pdfResultsDiv.appendChild(link);
-                pdfResultsDiv.appendChild(document.createElement("br"));
+
+            // Group results by keywords
+            keywords.forEach(keyword => {
+                const keywordDiv = document.createElement("div");
+                const keywordHeading = document.createElement("h3");
+                const keywordResultsDiv = document.createElement("div");
+                keywordResultsDiv.classList.add("keyword-results");
+
+                // Automatically reveal results if there's only one keyword
+                if (keywords.length === 1) {
+                    keywordResultsDiv.style.display = "block";
+                } else {
+                    keywordResultsDiv.style.display = "none"; // Hide initially
+                }
+
+                const keywordResults = pdfResults.filter(result => result.Keyword.toLowerCase() === keyword.toLowerCase());
+
+                keywordHeading.innerText = `Results for "${keyword}"`;
+                keywordHeading.classList.add("keyword-heading");
+
+                // Toggle display on click only if there's more than one keyword
+                if (keywords.length > 1) {
+                    keywordHeading.onclick = () => {
+                        keywordResultsDiv.style.display = keywordResultsDiv.style.display === "none" ? "block" : "none";
+                    };
+                }
+                
+                keywordResults.forEach(result => {
+                    const resultLink = document.createElement("a");
+                    resultLink.innerHTML = `
+                        <b>Keyword:</b> ${result.Keyword}<br>
+                        <b>Sentence:</b> ${result.Sentence}<br>
+                    `;
+                    resultLink.href = "#";
+                    resultLink.onclick = () => intraNavToPdf(result['Page Number']);
+                    keywordResultsDiv.appendChild(resultLink);
+                    keywordResultsDiv.appendChild(document.createElement("br"));
+                });
+
+                keywordDiv.appendChild(keywordHeading);
+                keywordDiv.appendChild(keywordResultsDiv);
+                pdfResultsDiv.appendChild(keywordDiv);
             });
         } else {
             pdfResultsDiv.innerHTML = `No results found for "${keywords.join(', ')}".`;
-        }
-
-        if (tkResults.length > 0 || pdfResults.length > 0) {
-            document.getElementById("questionnaire").classList.remove("hidden");
         }
     }
 }
@@ -95,4 +123,3 @@ function intraNavToPdf(pageNumber) {
 function openForum() {
     window.open("/forum", "Forum", "width=600,height=600");
 }
-
