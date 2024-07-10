@@ -38,6 +38,21 @@ function openForum() {
     window.open("/forum", "Forum", "width=600,height=600");
 }
 
+function showUploadModal() {
+    document.getElementById('upload-modal').style.display = 'block';
+}
+
+function hideUploadModal() {
+    document.getElementById('upload-modal').style.display = 'none';
+}
+
+// Close the modal if the user clicks outside of it
+window.onclick = function(event) {
+    if (event.target == document.getElementById('upload-modal')) {
+        hideUploadModal();
+    }
+}
+
 // Function to display results
 function displayResults(tkResults, pdfResults, keywords) {
     const tkResultsDiv = document.getElementById("tk-results");

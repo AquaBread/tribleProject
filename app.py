@@ -1,20 +1,28 @@
-from flask import Flask, render_template, request, jsonify, send_file  # Flask web framework
-from concurrent.futures import ProcessPoolExecutor, as_completed  # For parallel processing
-from tqdm import tqdm  # For displaying progress bars
-import fitz  # PyMuPDF library for PDF handling
-import re  # Regular expression module for text processing
-import os  # For checking file existence
-import time  # For measuring execution time
-import json  # For handling JSON data
+from flask import Flask, render_template, request, jsonify, send_file, redirect, url_for  # Added redirect and url_for
+from concurrent.futures import ProcessPoolExecutor, as_completed
+from tqdm import tqdm
+import fitz
+import re
+import os
+import time
+import json
+from werkzeug.utils import secure_filename  # For handling file uploads
 
-app = Flask(__name__) 
+app = Flask(__name__)
 
 # Global variables for PDF file path and index file path
-PDF_FILE_PATH = 'Resources/physText.pdf'
-#PDF_FILE_PATH = 'Resources/eldText.pdf'
-#PDF_FILE_PATH = 'Resources/camryManual.pdf'
+UPLOAD_FOLDER = 'resources/uploads'  # Folder to save uploaded files
+app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
+PDF_FILE_PATH = os.path.join(app.config['UPLOAD_FOLDER'], 'physText.pdf')
 INDEX_FILE_PATH = 'Resources/index.json'
-FORUM_FILE_PATH = 'data/tribleKnowledge/tkData.json'  # JSON file for forum data
+FORUM_FILE_PATH = 'data/tribleKnowledge/tkData.json'
+
+# Allowed file extensions for upload
+ALLOWED_EXTENSIONS = {'pdf'}
+
+# Function to check allowed file extensions
+def allowed_file(filename):
+    return '.' in filename and filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
 
 # Function to extract text and sentences from a page
 def extract_sentences(page_num, text):
@@ -25,8 +33,8 @@ def extract_sentences(page_num, text):
 def preprocess_pdf(pdf_file):
     index = []
     try:
-        pdf_document = fitz.open(pdf_file)  # Open the PDF file
-        total_pages = len(pdf_document)  # Get the total number of pages
+        pdf_document = fitz.open(pdf_file)
+        total_pages = len(pdf_document)
         with ProcessPoolExecutor() as executor:
             futures = []
             for page_num in tqdm(range(total_pages), desc="Preprocessing PDF", unit="page"):
@@ -82,18 +90,18 @@ def search_keywords_in_pdf(pdf_file, keywords):
         print("No such file:", os.path.basename(pdf_file))
         return [], 0.0
 
-    start_time = time.time()  # Start measuring time
+    start_time = time.time()
 
     if os.path.isfile(INDEX_FILE_PATH):
-        index = load_index_from_file(INDEX_FILE_PATH)  # Load the index if it exists
+        index = load_index_from_file(INDEX_FILE_PATH)
     else:
-        index = preprocess_pdf(pdf_file)  # Preprocess the PDF to create an index
-        save_index_to_file(index, INDEX_FILE_PATH)  # Save the index to a file
+        index = preprocess_pdf(pdf_file)
+        save_index_to_file(index, INDEX_FILE_PATH)
 
-    found_data = search_keywords_in_index(index, keywords)  # Search for keywords in the index
+    found_data = search_keywords_in_index(index, keywords)
 
-    end_time = time.time()  # End measuring time
-    duration = end_time - start_time  # Calculate the duration
+    end_time = time.time()
+    duration = end_time - start_time
 
     return found_data, duration
 
@@ -101,8 +109,8 @@ def search_keywords_in_pdf(pdf_file, keywords):
 def initialize_index(pdf_file, index_file):
     print("Initializing index...")
     if not os.path.isfile(index_file):
-        index = preprocess_pdf(pdf_file)  # Preprocess the PDF if the index file doesn't exist
-        save_index_to_file(index, index_file)  # Save the index to a file
+        index = preprocess_pdf(pdf_file)
+        save_index_to_file(index, index_file)
         print("PDF preprocessing complete and index saved.")
     else:
         print("Index file already exists. Skipping preprocessing.")
@@ -133,8 +141,8 @@ def load_forum_data():
 def extract_toc(pdf_file):
     toc = []
     try:
-        pdf_document = fitz.open(pdf_file)  # Open the PDF file
-        toc_data = pdf_document.get_toc()  # Get the table of contents
+        pdf_document = fitz.open(pdf_file)
+        toc_data = pdf_document.get_toc()
 
         for item in toc_data:
             level, title, page = item
@@ -143,29 +151,6 @@ def extract_toc(pdf_file):
     except Exception as e:
         print(f"An error occurred while extracting TOC: {e}")
     return toc
-
-def search_keywords_in_tkData(tk_file, keywords):
-    if not os.path.isfile(tk_file):
-        return []
-    
-    with open(tk_file, 'r') as file:
-        tk_data = json.load(file)
-        
-    found_data = []
-    for entry in tk_data:
-        for keyword in keywords:
-            if (keyword.lower() in entry['Problem Description'].lower() or
-                keyword.lower() in entry['Solution'].lower()):
-                bold_problem_description = re.sub(f"(?i)({re.escape(keyword)})", r"<b>\1</b>", entry['Problem Description'], flags=re.IGNORECASE)
-                bold_solution = re.sub(f"(?i)({re.escape(keyword)})", r"<b>\1</b>", entry['Solution'], flags=re.IGNORECASE)
-                found_data.append({
-                    'Name': entry['Name'],
-                    'Problem Description': bold_problem_description,
-                    'Solution': bold_solution,
-                    'Chapter': entry['Chapter'],
-                    'Chapter Page': entry['Chapter Page']
-                })
-    return found_data
 
 @app.route('/get_toc')
 def get_toc():
@@ -187,20 +172,18 @@ def submit_problem():
     except Exception as e:
         return jsonify({'error': str(e)}), 400
 
-# Route to render the index page
 @app.route('/')
 def index():
     return render_template('index.html')
 
-# Route to handle search requests
 @app.route('/search', methods=['POST'])
 def search():
-    data = request.get_json()  # Get JSON data from the request
+    data = request.get_json()
     keywords = data['keywords']
-    
-    tk_data = search_keywords_in_tkData(FORUM_FILE_PATH, keywords)  # Search tkData.json first
-    pdf_data, duration = search_keywords_in_pdf(PDF_FILE_PATH, keywords)  # Perform the search in the PDF
-    
+
+    tk_data = search_keywords_in_tkdata(load_forum_data(), keywords)
+    pdf_data, duration = search_keywords_in_pdf(PDF_FILE_PATH, keywords)
+
     response = {
         'results': {
             'tkData': tk_data,
@@ -211,7 +194,6 @@ def search():
     }
     return jsonify(response)
 
-# Route to view the PDF
 @app.route('/view_pdf')
 def view_pdf():
     page_number = request.args.get('page')
@@ -221,10 +203,29 @@ def view_pdf():
 def forum():
     return render_template('forum.html')
 
+@app.route('/upload', methods=['POST'])
+def upload_file():
+    if 'file' not in request.files:
+        return redirect(request.url)
+    file = request.files['file']
+    if file.filename == '':
+        return redirect(request.url)
+    if file and allowed_file(file.filename):
+        filename = secure_filename(file.filename)
+        file_path = os.path.join(app.config['UPLOAD_FOLDER'], filename)
+        file.save(file_path)
+        
+        # Process the uploaded file
+        global PDF_FILE_PATH
+        PDF_FILE_PATH = file_path
+        initialize_index(PDF_FILE_PATH, INDEX_FILE_PATH)
+
+        return redirect(url_for('index'))
+    else:
+        return 'File not allowed', 400
+
 if __name__ == '__main__':
-    # Initialize the index
+    if not os.path.exists(UPLOAD_FOLDER):
+        os.makedirs(UPLOAD_FOLDER)
     initialize_index(PDF_FILE_PATH, INDEX_FILE_PATH)
-
-    # Start the Flask application
     app.run(debug=True)
-
