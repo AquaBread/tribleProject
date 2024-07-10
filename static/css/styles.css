@@ -6,7 +6,7 @@ body {
 }
 
 /*********************  Heading styles ******************** */
-h1 {
+h1, h2 {
     text-align: center;
 }
 
@@ -17,11 +17,6 @@ h1 {
     padding-right: 20px; 
 }
 
-/********************* Heading styles *********************/
-h2 {
-    text-align: center;
-}
-
 /********************* Hidden class *********************/
 .hidden {
     display: none;
@@ -29,17 +24,15 @@ h2 {
 
 /********************** Style for Trible Search link **********************/
 .tribble-search-link {
-    color: #333; /* Set text color */
-    text-decoration: none; /* Remove underline */
-    transition: color 0.3s ease; /* Smooth transition for color change */
+    color: #333; 
+    text-decoration: none; 
+    transition: color 0.3s ease;
 }
 
 .tribble-search-link:hover {
-    color: rgb(0, 162, 255); /* Change text color on hover */
-    text-decoration: none; 
-    cursor: pointer; /* Change cursor to pointer on hover */
+    color: rgb(0, 162, 255);
+    cursor: pointer;
 }
-
 
 /********************* Search container styles *********************/
 .search-container {
@@ -67,33 +60,21 @@ h2 {
     background-color: rgb(0, 162, 255);
 }
 
-/********************* Column styles /**********************/
-.left-column {
+/********************* Column styles *********************/
+.left-column, .right-column {
     overflow-y: auto;
     float: left;
-    width: 48%; /* Adjust width as needed */
-    max-height: 600px; /* Set a max-height to enable scrolling */
-    margin-right: 2%;
-}
-
-.right-column {
-    overflow-y: auto;
-    float: left;
-    width: 48%; /* Adjust width as needed */
-    max-height: 600px; /* Set a max-height to enable scrolling */
-    margin-left: 2%;
+    width: 48%;
+    max-height: 600px;
+    margin: 0 1%;
 }
 
 .results-container {
     margin-top: 20px;
 }
 
-.container {
-    display: flex;
-    justify-content: space-between;
-}
-
-#pdf-results a {
+/********************* PDF and Results styles *********************/
+#pdf-results a, #results a, #tk-results a {
     display: block;
     padding: 10px;
     background-color: #f9f9f9;
@@ -103,37 +84,7 @@ h2 {
     color: #333;
 }
 
-#pdf-results a:hover {
-    background-color: #f0f0f0;
-}
-
-#trible-knowledge-heading {
-    text-align: center;
-}
-
-.hidden {
-    display: none;
-}
-
-
-/********************* Results styles *********************/
-#results {
-    margin-top: 20px;
-}
-
-#results a,
-#tk-results a {
-    display: block;
-    padding: 10px;
-    background-color: #f9f9f9;
-    border-radius: 5px;
-    margin-bottom: 10px;
-    text-decoration: none;
-    color: #333;
-}
-
-#results a:hover,
-#tk-results a:hover {
+#pdf-results a:hover, #results a:hover, #tk-results a:hover {
     background-color: #f0f0f0;
 }
 
@@ -180,12 +131,40 @@ h2 {
     background-color: darkblue;
 }
 
-#thank-you-message {
+#thank-you-message, #name, #problem-description, #solution {
     font-family: 'Times New Roman', Times, serif;
 }
 
-/* Apply the same font to Problem Description and Solution textareas */
-#name, #problem-description,
-#solution {
-    font-family: 'Times New Roman', Times, serif;
+/********************* Styles for the clickable keyword headings ***********************/
+.keyword-heading {
+    cursor: pointer;
+    color: blue; /* Bootstrap primary color for a nice blue */
+    text-decoration: none;
+    font-weight: bold;
+    margin: 10px 0;
+    transition: color 0.3s, transform 0.3s;
+
+    display: block;
+    padding: 10px;
+    background-color: #f9f9f9;
+    border-radius: 5px;
+    margin-bottom: 10px;
+}
+
+.keyword-heading:hover {
+    color: rgb(0, 162, 255); /* Darker blue on hover */
+    background-color: #f0f0f0;
+}
+
+/* Styles for the keyword results container */
+.keyword-results {
+    margin-left: 20px;
+    margin-bottom: 10px;
+    border-left: 2px solid blue;
+    padding-left: 10px;
+}
+
+/* General container styles */
+.results-container {
+    margin-top: 20px;
 }

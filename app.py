@@ -1,24 +1,23 @@
-from flask import Flask, render_template, request, jsonify, send_file # Flask web framework
-from concurrent.futures import ProcessPoolExecutor, as_completed # For parallel processing
-from tqdm import tqdm # For displaying progress bars
-from config import SECRET_KEY
-import fitz # PyMuPDF library for PDF handling
-import re # Regular expression module for text processing
-import os # For checking file existence
-import time # For measuring execution time
-import json # For handling JSON data
-import csv # For CSV file handling
+from flask import Flask, render_template, request, jsonify, send_file  # Flask web framework
+from concurrent.futures import ProcessPoolExecutor, as_completed  # For parallel processing
+from tqdm import tqdm  # For displaying progress bars
+import fitz  # PyMuPDF library for PDF handling
+import re  # Regular expression module for text processing
+import os  # For checking file existence
+import time  # For measuring execution time
+import json  # For handling JSON data
 
 app = Flask(__name__) 
 
 # Global variables for PDF file path and index file path
 PDF_FILE_PATH = 'Resources/physText.pdf'
+#PDF_FILE_PATH = 'Resources/eldText.pdf'
+#PDF_FILE_PATH = 'Resources/camryManual.pdf'
 INDEX_FILE_PATH = 'Resources/index.json'
-FORUM_FILE_PATH = 'data/tribleKnowledge/tkData.json' # JSON file for forum data
+FORUM_FILE_PATH = 'data/tribleKnowledge/tkData.json'  # JSON file for forum data
 
 # Function to extract text and sentences from a page
 def extract_sentences(page_num, text):
-    # Split the text into sentences using regular expressions
     sentences = re.split(r'(?<!\w.\w.)(?<![A-Z][a-z].)(?<=\.|\?)\s', text)
     return [{'Page Number': page_num + 1, 'Sentence': sentence} for sentence in sentences]
 
@@ -26,23 +25,20 @@ def extract_sentences(page_num, text):
 def preprocess_pdf(pdf_file):
     index = []
     try:
-        pdf_document = fitz.open(pdf_file) # Open the PDF file
-        total_pages = len(pdf_document) # Get the total number of pages
+        pdf_document = fitz.open(pdf_file)  # Open the PDF file
+        total_pages = len(pdf_document)  # Get the total number of pages
         with ProcessPoolExecutor() as executor:
             futures = []
-            # Display a progress bar while submitting tasks for each page
             for page_num in tqdm(range(total_pages), desc="Preprocessing PDF", unit="page"):
                 future = executor.submit(extract_sentences, page_num, pdf_document.load_page(page_num).get_text("text"))
                 futures.append(future)
 
-            # Collect results as they complete
             for future in as_completed(futures):
                 index.extend(future.result())
-        # Sort the index by page number
         index.sort(key=lambda x: x['Page Number'])
     except Exception as e:
         print(f"An error occurred during preprocessing: {e}")
-    return index
+    return {'physics': index}
 
 # Save the preprocessed index to a JSON file
 def save_index_to_file(index, filename):
@@ -57,10 +53,9 @@ def load_index_from_file(filename):
 # Search for keywords in the preprocessed index
 def search_keywords_in_index(index, keywords):
     all_data = []
-    for entry in index:
+    for entry in index['physics']:
         for keyword in keywords:
             if keyword.lower() in entry['Sentence'].lower():
-                # Bolds the keyword in the sentence
                 bold_keyword_in_sentence = re.sub(f"(?i)({re.escape(keyword)})", r"<b>\1</b>", entry['Sentence'], flags=re.IGNORECASE)
                 all_data.append({'Keyword': keyword, 'Page Number': entry['Page Number'], 'Sentence': bold_keyword_in_sentence})
     return all_data
@@ -89,7 +84,6 @@ def search_keywords_in_pdf(pdf_file, keywords):
 
     start_time = time.time()  # Start measuring time
 
-    # Check if the index file already exists
     if os.path.isfile(INDEX_FILE_PATH):
         index = load_index_from_file(INDEX_FILE_PATH)  # Load the index if it exists
     else:
@@ -107,8 +101,8 @@ def search_keywords_in_pdf(pdf_file, keywords):
 def initialize_index(pdf_file, index_file):
     print("Initializing index...")
     if not os.path.isfile(index_file):
-        index = preprocess_pdf(pdf_file) # Preprocess the PDF if the index file doesn't exist
-        save_index_to_file(index, index_file) # Save the index to a file
+        index = preprocess_pdf(pdf_file)  # Preprocess the PDF if the index file doesn't exist
+        save_index_to_file(index, index_file)  # Save the index to a file
         print("PDF preprocessing complete and index saved.")
     else:
         print("Index file already exists. Skipping preprocessing.")
@@ -139,12 +133,11 @@ def load_forum_data():
 def extract_toc(pdf_file):
     toc = []
     try:
-        pdf_document = fitz.open(pdf_file) # Open the PDF file
-        toc_data = pdf_document.get_toc() # Get the table of contents
+        pdf_document = fitz.open(pdf_file)  # Open the PDF file
+        toc_data = pdf_document.get_toc()  # Get the table of contents
 
         for item in toc_data:
             level, title, page = item
-            # Check if the title starts with a whole number (followed by a space or non-numeric character)
             if re.match(r'^\d+\s', title) or re.match(r'^\d+[^.\d]', title):
                 toc.append({'Chapter': level, 'Title': title, 'Page': page})
     except Exception as e:
@@ -181,15 +174,18 @@ def get_toc():
 
 @app.route('/submit_problem', methods=['POST'])
 def submit_problem():
-    data = request.json
-    name = data['name']
-    problem_description = data['problem-description']
-    solution = data['solution']
-    chapter_name = data['chapter-name']
-    chapter_page = data['chapter-page']
+    try:
+        data = request.json
+        name = data['name']
+        problem_description = data['problem-description']
+        solution = data['solution']
+        chapter_name = data['chapter-name']
+        chapter_page = data['chapter-page']
 
-    save_forum_data(name, problem_description, solution, chapter_name, chapter_page)
-    return jsonify({'message': 'Data submitted successfully'})
+        save_forum_data(name, problem_description, solution, chapter_name, chapter_page)
+        return jsonify({'message': 'Data submitted successfully'})
+    except Exception as e:
+        return jsonify({'error': str(e)}), 400
 
 # Route to render the index page
 @app.route('/')
@@ -215,7 +211,6 @@ def search():
     }
     return jsonify(response)
 
-
 # Route to view the PDF
 @app.route('/view_pdf')
 def view_pdf():
@@ -232,3 +227,4 @@ if __name__ == '__main__':
 
     # Start the Flask application
     app.run(debug=True)
+
