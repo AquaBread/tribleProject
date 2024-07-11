@@ -1,4 +1,4 @@
-from flask import Flask, render_template, request, jsonify, send_file, redirect, url_for  # Added redirect and url_for
+from flask import Flask, render_template, request, jsonify, send_file, redirect, url_for
 from concurrent.futures import ProcessPoolExecutor, as_completed
 from tqdm import tqdm
 import fitz
@@ -6,41 +6,30 @@ import re
 import os
 import time
 import json
-from werkzeug.utils import secure_filename  # For handling file uploads
+from werkzeug.utils import secure_filename
 
 app = Flask(__name__)
 
-# Global variables for PDF file path and index file path
-UPLOAD_FOLDER = 'resources/uploads'  # Folder to save uploaded files
+UPLOAD_FOLDER = 'resources/uploads'
 app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
-PDF_FILE_PATH = os.path.join(app.config['UPLOAD_FOLDER'], 'physText.pdf')
-INDEX_FILE_PATH = 'Resources/index.json'
+INDEX_FILE_PATH = 'resources/index.json'
 FORUM_FILE_PATH = 'data/tribleKnowledge/tkData.json'
-
-# Allowed file extensions for upload
 ALLOWED_EXTENSIONS = {'pdf'}
 
-# Function to check allowed file extensions
 def allowed_file(filename):
     return '.' in filename and filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
 
-# Function to extract text and sentences from a page
 def extract_sentences(page_num, text):
     sentences = re.split(r'(?<!\w.\w.)(?<![A-Z][a-z].)(?<=\.|\?)\s', text)
     return [{'Page Number': page_num + 1, 'Sentence': sentence} for sentence in sentences]
 
-# Pre-process the PDF to create an index and sort it by page number
 def preprocess_pdf(pdf_file):
     index = []
     try:
         pdf_document = fitz.open(pdf_file)
         total_pages = len(pdf_document)
         with ProcessPoolExecutor() as executor:
-            futures = []
-            for page_num in tqdm(range(total_pages), desc="Preprocessing PDF", unit="page"):
-                future = executor.submit(extract_sentences, page_num, pdf_document.load_page(page_num).get_text("text"))
-                futures.append(future)
-
+            futures = [executor.submit(extract_sentences, page_num, pdf_document.load_page(page_num).get_text("text")) for page_num in range(total_pages)]
             for future in as_completed(futures):
                 index.extend(future.result())
         index.sort(key=lambda x: x['Page Number'])
@@ -48,17 +37,14 @@ def preprocess_pdf(pdf_file):
         print(f"An error occurred during preprocessing: {e}")
     return {'physics': index}
 
-# Save the preprocessed index to a JSON file
 def save_index_to_file(index, filename):
     with open(filename, 'w') as file:
         json.dump(index, file)
 
-# Load the preprocessed index from a JSON file
 def load_index_from_file(filename):
     with open(filename, 'r') as file:
         return json.load(file)
 
-# Search for keywords in the preprocessed index
 def search_keywords_in_index(index, keywords):
     all_data = []
     for entry in index['physics']:
@@ -68,7 +54,6 @@ def search_keywords_in_index(index, keywords):
                 all_data.append({'Keyword': keyword, 'Page Number': entry['Page Number'], 'Sentence': bold_keyword_in_sentence})
     return all_data
 
-# Search for keywords in the tkData.json file
 def search_keywords_in_tkdata(tkdata, keywords):
     results = []
     for entry in tkdata:
@@ -84,7 +69,6 @@ def search_keywords_in_tkdata(tkdata, keywords):
                 })
     return results
 
-# Main function to search keywords in the PDF
 def search_keywords_in_pdf(pdf_file, keywords):
     if not os.path.isfile(pdf_file):
         print("No such file:", os.path.basename(pdf_file))
@@ -99,23 +83,10 @@ def search_keywords_in_pdf(pdf_file, keywords):
         save_index_to_file(index, INDEX_FILE_PATH)
 
     found_data = search_keywords_in_index(index, keywords)
-
     end_time = time.time()
     duration = end_time - start_time
-
     return found_data, duration
 
-# Function to initialize the index
-def initialize_index(pdf_file, index_file):
-    print("Initializing index...")
-    if not os.path.isfile(index_file):
-        index = preprocess_pdf(pdf_file)
-        save_index_to_file(index, index_file)
-        print("PDF preprocessing complete and index saved.")
-    else:
-        print("Index file already exists. Skipping preprocessing.")
-
-# Save forum data to JSON file
 def save_forum_data(name, problem_description, solution, chapter_name, chapter_page):
     forum_data = {
         'Name': name,
@@ -129,7 +100,6 @@ def save_forum_data(name, problem_description, solution, chapter_name, chapter_p
     with open(FORUM_FILE_PATH, 'w') as f:
         json.dump(forum_list, f, indent=4)
 
-# Load forum data from the JSON file
 def load_forum_data():
     if os.path.exists(FORUM_FILE_PATH):
         with open(FORUM_FILE_PATH, 'r') as f:
@@ -137,13 +107,11 @@ def load_forum_data():
     else:
         return []
 
-# Extract the table of contents from the PDF file
 def extract_toc(pdf_file):
     toc = []
     try:
         pdf_document = fitz.open(pdf_file)
         toc_data = pdf_document.get_toc()
-
         for item in toc_data:
             level, title, page = item
             if re.match(r'^\d+\s', title) or re.match(r'^\d+[^.\d]', title):
@@ -215,10 +183,12 @@ def upload_file():
         file_path = os.path.join(app.config['UPLOAD_FOLDER'], filename)
         file.save(file_path)
         
-        # Process the uploaded file
         global PDF_FILE_PATH
         PDF_FILE_PATH = file_path
-        initialize_index(PDF_FILE_PATH, INDEX_FILE_PATH)
+        
+        # Preprocess the uploaded PDF and save the index
+        index = preprocess_pdf(PDF_FILE_PATH)
+        save_index_to_file(index, INDEX_FILE_PATH)
 
         return redirect(url_for('index'))
     else:
@@ -227,5 +197,5 @@ def upload_file():
 if __name__ == '__main__':
     if not os.path.exists(UPLOAD_FOLDER):
         os.makedirs(UPLOAD_FOLDER)
-    initialize_index(PDF_FILE_PATH, INDEX_FILE_PATH)
     app.run(debug=True)
+

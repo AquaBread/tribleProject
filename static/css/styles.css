@@ -177,7 +177,6 @@ h1, h2 {
     border-radius: 5px;
     background-color: blue;
     color: #ffffff;
-    font-size: 16px;
     cursor: pointer;
     transition: background-color 0.3s ease;
     margin-bottom: 10px;
