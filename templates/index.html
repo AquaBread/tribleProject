@@ -1,12 +1,13 @@
 <!DOCTYPE html>
 <html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Trible</title>
-    <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='css/styles.css') }}">
-    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.4.0/dist/confetti.browser.min.js"></script>
-</head>
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>Trible</title>
+        <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='css/styles.css') }}">
+        <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.4.0/dist/confetti.browser.min.js"></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.4.1/socket.io.js"></script>
+    </head>
 <body>
     <h1 id="top"><a href="/" class="tribble-search-link">Trible Search</a></h1>
 
@@ -15,6 +16,22 @@
         <button onclick="searchKeywords()">Search</button>
         <button onclick="openForum()">Submit a Solution</button>
         <button id="upload-button" onclick="showUploadModal()">Upload a File</button>
+    </div>
+
+    <!-- Upload -->
+    <div id="upload-modal" class="modal">
+        <div class="modal-content">
+            <span class="close" onclick="hideUploadModal()">&times;</span>
+            <h2>Upload a File</h2>
+            <form id="upload-form" method="post" enctype="multipart/form-data">
+                <input type="file" name="file" id="file-input">
+                <button type="submit">Upload</button>
+            </form>
+            <div id="loading-container" style="display: none;">
+                <progress id="progress-bar" value="0" max="100"></progress>
+                <p id="progress-text">0%</p>
+            </div>
+        </div>
     </div>
 
     <div id="search-info"></div>
@@ -30,17 +47,6 @@
         <div class="right-column scrollable">
             <h2 id="trible-knowledge-heading" class="hidden">Trible Knowledge</h2>
             <div id="tk-results" class="results-container"></div>
-        </div>
-    </div>
-
-    <!-- Upload -->
-    <div id="upload-modal" class="modal">
-        <div class="modal-content">
-            <span class="close" onclick="hideUploadModal()">&times;</span>
-            <form id="upload-form" action="/upload" method="post" enctype="multipart/form-data">
-                <input type="file" name="file" id="file-input">
-                <button type="submit">Upload File</button>
-            </form>
         </div>
     </div>
 

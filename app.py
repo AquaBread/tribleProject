@@ -1,4 +1,5 @@
 from flask import Flask, render_template, request, jsonify, send_file, redirect, url_for
+from flask_socketio import SocketIO, emit
 from concurrent.futures import ProcessPoolExecutor, as_completed
 from tqdm import tqdm
 import fitz
@@ -9,6 +10,7 @@ import json
 from werkzeug.utils import secure_filename
 
 app = Flask(__name__)
+socketio = SocketIO(app)
 
 UPLOAD_FOLDER = 'resources/uploads'
 app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
@@ -29,7 +31,12 @@ def preprocess_pdf(pdf_file):
         pdf_document = fitz.open(pdf_file)
         total_pages = len(pdf_document)
         with ProcessPoolExecutor() as executor:
-            futures = [executor.submit(extract_sentences, page_num, pdf_document.load_page(page_num).get_text("text")) for page_num in range(total_pages)]
+            futures = []
+            for page_num in tqdm(range(total_pages), desc="Preprocessing PDF", unit="page"):
+                future = executor.submit(extract_sentences, page_num, pdf_document.load_page(page_num).get_text("text"))
+                futures.append(future)
+                socketio.emit('progress', {'progress': (page_num + 1) / total_pages * 100})
+
             for future in as_completed(futures):
                 index.extend(future.result())
         index.sort(key=lambda x: x['Page Number'])
@@ -197,5 +204,6 @@ def upload_file():
 if __name__ == '__main__':
     if not os.path.exists(UPLOAD_FOLDER):
         os.makedirs(UPLOAD_FOLDER)
-    app.run(debug=True)
+    socketio.run(app, debug=True)
+
 

@@ -1,3 +1,41 @@
+const socket = io();
+
+socket.on('progress', function (data) {
+    const progress = data.progress;
+    document.getElementById('progress-bar').value = progress;
+    document.getElementById('progress-text').textContent = `${progress.toFixed(2)}%`;
+});
+
+document.getElementById('upload-form').addEventListener('submit', function (event) {
+    event.preventDefault();
+    const formData = new FormData(event.target);
+    const xhr = new XMLHttpRequest();
+    xhr.open('POST', '/upload', true);
+
+    xhr.upload.onprogress = function (event) {
+        if (event.lengthComputable) {
+            const percentComplete = (event.loaded / event.total) * 100;
+            document.getElementById('progress-bar').value = percentComplete;
+            document.getElementById('progress-text').textContent = `${percentComplete.toFixed(2)}%`;
+            document.getElementById('loading-container').style.display = 'block';
+        }
+    };
+
+    xhr.onload = function () {
+        if (xhr.status === 200) {
+            hideUploadModal();
+            document.getElementById('progress-bar').value = 0;
+            document.getElementById('progress-text').textContent = '0%';
+            document.getElementById('loading-container').style.display = 'none';
+            alert('File uploaded successfully!');
+        } else {
+            alert('Failed to upload file.');
+        }
+    };
+
+    xhr.send(formData);
+});
+
 // Function to search for keywords
 function searchKeywords() {
     const keywordsInput = document.getElementById("keywords").value;
