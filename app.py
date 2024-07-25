@@ -205,5 +205,3 @@ if __name__ == '__main__':
     if not os.path.exists(UPLOAD_FOLDER):
         os.makedirs(UPLOAD_FOLDER)
     socketio.run(app, debug=True)
-
-
