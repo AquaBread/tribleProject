@@ -25,7 +25,7 @@ def extract_sentences(page_num, text):
     sentences = re.split(r'(?<!\w.\w.)(?<![A-Z][a-z].)(?<=\.|\?)\s', text)
     return [{'Page Number': page_num + 1, 'Sentence': sentence} for sentence in sentences]
 
-def preprocess_pdf(pdf_file):
+def preprocess_pdf(pdf_file, title):
     index = []
     try:
         pdf_document = fitz.open(pdf_file)
@@ -42,7 +42,7 @@ def preprocess_pdf(pdf_file):
         index.sort(key=lambda x: x['Page Number'])
     except Exception as e:
         print(f"An error occurred during preprocessing: {e}")
-    return {'physics': index}
+    return {title: index}
 
 def save_index_to_file(index, filename):
     with open(filename, 'w') as file:
@@ -54,11 +54,12 @@ def load_index_from_file(filename):
 
 def search_keywords_in_index(index, keywords):
     all_data = []
-    for entry in index['physics']:
-        for keyword in keywords:
-            if keyword.lower() in entry['Sentence'].lower():
-                bold_keyword_in_sentence = re.sub(f"(?i)({re.escape(keyword)})", r"<b>\1</b>", entry['Sentence'], flags=re.IGNORECASE)
-                all_data.append({'Keyword': keyword, 'Page Number': entry['Page Number'], 'Sentence': bold_keyword_in_sentence})
+    for title, entries in index.items():
+        for entry in entries:
+            for keyword in keywords:
+                if keyword.lower() in entry['Sentence'].lower():
+                    bold_keyword_in_sentence = re.sub(f"(?i)({re.escape(keyword)})", r"<b>\1</b>", entry['Sentence'], flags=re.IGNORECASE)
+                    all_data.append({'Title': title, 'Keyword': keyword, 'Page Number': entry['Page Number'], 'Sentence': bold_keyword_in_sentence})
     return all_data
 
 def search_keywords_in_tkdata(tkdata, keywords):
@@ -192,9 +193,9 @@ def upload_file():
         
         global PDF_FILE_PATH
         PDF_FILE_PATH = file_path
-        
+
         # Preprocess the uploaded PDF and save the index
-        index = preprocess_pdf(PDF_FILE_PATH)
+        index = preprocess_pdf(PDF_FILE_PATH, title=filename)
         save_index_to_file(index, INDEX_FILE_PATH)
 
         return redirect(url_for('index'))
@@ -205,3 +206,5 @@ if __name__ == '__main__':
     if not os.path.exists(UPLOAD_FOLDER):
         os.makedirs(UPLOAD_FOLDER)
     socketio.run(app, debug=True)
+
+
