@@ -18,6 +18,8 @@ INDEX_FILE_PATH = 'resources/index.json'
 FORUM_FILE_PATH = 'data/tribleKnowledge/tkData.json'
 ALLOWED_EXTENSIONS = {'pdf'}
 
+PDF_FILE_PATH = INDEX_FILE_PATH
+
 def allowed_file(filename):
     return '.' in filename and filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
 
@@ -52,6 +54,13 @@ def load_index_from_file(filename):
     with open(filename, 'r') as file:
         return json.load(file)
 
+def is_index_file_empty(filename):
+    if os.path.exists(filename):
+        with open(filename, 'r') as file:
+            data = file.read().strip()
+            return data == "" or data == "{}"
+    return True
+
 def search_keywords_in_index(index, keywords):
     all_data = []
     for title, entries in index.items():
@@ -59,7 +68,7 @@ def search_keywords_in_index(index, keywords):
             for keyword in keywords:
                 if keyword.lower() in entry['Sentence'].lower():
                     bold_keyword_in_sentence = re.sub(f"(?i)({re.escape(keyword)})", r"<b>\1</b>", entry['Sentence'], flags=re.IGNORECASE)
-                    all_data.append({'Title': title, 'Keyword': keyword, 'Page Number': entry['Page Number'], 'Sentence': bold_keyword_in_sentence})
+                    all_data.append({'Keyword': keyword, 'Page Number': entry['Page Number'], 'Sentence': bold_keyword_in_sentence, 'Title': title})
     return all_data
 
 def search_keywords_in_tkdata(tkdata, keywords):
@@ -87,7 +96,7 @@ def search_keywords_in_pdf(pdf_file, keywords):
     if os.path.isfile(INDEX_FILE_PATH):
         index = load_index_from_file(INDEX_FILE_PATH)
     else:
-        index = preprocess_pdf(pdf_file)
+        index = preprocess_pdf(pdf_file, title=os.path.basename(pdf_file))
         save_index_to_file(index, INDEX_FILE_PATH)
 
     found_data = search_keywords_in_index(index, keywords)
@@ -150,10 +159,23 @@ def submit_problem():
 
 @app.route('/')
 def index():
-    return render_template('index.html')
+    if not is_index_file_empty(INDEX_FILE_PATH) and PDF_FILE_PATH is not None:
+        return render_template('index.html')
+    else:
+        return redirect(url_for('upload_prompt'))
+
+@app.route('/upload_prompt')
+def upload_prompt():
+    return render_template('upload_prompt.html')
 
 @app.route('/search', methods=['POST'])
 def search():
+    if is_index_file_empty(INDEX_FILE_PATH):
+        return jsonify({'error': 'Index is empty. Please upload a PDF to search through.'}), 400
+    
+    if PDF_FILE_PATH is None:
+        return jsonify({'error': 'No PDF file has been uploaded. Please upload a PDF to search through.'}), 400
+    
     data = request.get_json()
     keywords = data['keywords']
 
@@ -192,7 +214,7 @@ def upload_file():
         file.save(file_path)
         
         global PDF_FILE_PATH
-        PDF_FILE_PATH = file_path
+        PDF_FILE_PATH = file_path  # Ensure this is set correctly
 
         # Preprocess the uploaded PDF and save the index
         index = preprocess_pdf(PDF_FILE_PATH, title=filename)
@@ -206,5 +228,3 @@ if __name__ == '__main__':
     if not os.path.exists(UPLOAD_FOLDER):
         os.makedirs(UPLOAD_FOLDER)
     socketio.run(app, debug=True)
-
-
