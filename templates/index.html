@@ -1,13 +1,13 @@
 <!DOCTYPE html>
 <html lang="en">
-    <head>
-        <meta charset="UTF-8">
-        <meta name="viewport" content="width=device-width, initial-scale=1.0">
-        <title>Trible</title>
-        <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='css/styles.css') }}">
-        <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.4.0/dist/confetti.browser.min.js"></script>
-        <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.4.1/socket.io.js"></script>
-    </head>
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Trible</title>
+    <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='css/styles.css') }}">
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.4.0/dist/confetti.browser.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.4.1/socket.io.js"></script>
+</head>
 <body>
     <h1 id="top"><a href="/" class="tribble-search-link">Trible Search</a></h1>
 
@@ -18,16 +18,24 @@
         <button id="upload-button" onclick="showUploadModal()">Upload a File</button>
     </div>
 
+    {% if show_upload_modal %}
+    <script>
+        window.onload = function() {
+            showUploadModal(true);
+        };
+    </script>
+    {% endif %}
+
     <!-- Upload -->
     <div id="upload-modal" class="modal">
         <div class="modal-content">
             <span class="close" onclick="hideUploadModal()">&times;</span>
             <h2>Upload a File</h2>
-            <form id="upload-form" method="post" enctype="multipart/form-data">
-                <input type="file" name="file" id="file-input">
+            <form id="upload-form" method="post" enctype="multipart/form-data" onsubmit="return checkFileUploaded()">
+                <input type="file" name="file" id="file-input" required>
                 <button type="submit">Upload</button>
             </form>
-            <div id="loading-container" style="display: none;">
+            <div id="loading-container" class="hidden">
                 <progress id="progress-bar" value="0" max="100"></progress>
                 <p id="progress-text">0%</p>
             </div>
@@ -50,6 +58,9 @@
         </div>
     </div>
 
+    <script>
+        var initialUploadRequired = {{ show_upload_modal | tojson }};
+    </script>
     <script src="{{ url_for('static', filename='js/app.js') }}"></script>
 </body>
 </html>

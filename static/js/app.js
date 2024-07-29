@@ -36,7 +36,6 @@ document.getElementById('upload-form').addEventListener('submit', function (even
     xhr.send(formData);
 });
 
-// Function to search for keywords
 function searchKeywords() {
     const keywordsInput = document.getElementById("keywords").value;
     const keywords = keywordsInput.split(",").map(keyword => keyword.trim());
@@ -56,7 +55,6 @@ function searchKeywords() {
     .catch(error => console.error('Error:', error));
 }
 
-// Function to display search information
 function displaySearchInfo(data) {
     const searchInfoDiv = document.getElementById("search-info");
     searchInfoDiv.innerHTML = `<b>Search Duration:</b> ${data.duration.toFixed(3)} seconds <br><b>Results Found:</b> ${data.num_results}`;
@@ -65,33 +63,74 @@ function displaySearchInfo(data) {
     document.getElementById("pdf-results-heading").classList.remove("hidden");
 }
 
-// Function to navigate to a specific page in the PDF
 function intraNavToPdf(pageNumber) {
     const url = `/view_pdf?page=${pageNumber}#page=${pageNumber}&toolbar=0&navpanes=0&scrollbar=0`;
     window.location.href = url;
 }
 
-// Function to open the forum page
 function openForum() {
     window.open("/forum", "Forum", "width=600,height=600");
 }
 
-function showUploadModal() {
-    document.getElementById('upload-modal').style.display = 'block';
-}
-
-function hideUploadModal() {
-    document.getElementById('upload-modal').style.display = 'none';
-}
-
-// Close the modal if the user clicks outside of it
 window.onclick = function(event) {
     if (event.target == document.getElementById('upload-modal')) {
         hideUploadModal();
     }
 }
 
-// Function to display results
+function showUploadModal(mandatory = false) {
+    const modal = document.getElementById('upload-modal');
+    const closeBtn = modal.querySelector('.close');
+    modal.style.display = 'block';
+    
+    if (mandatory) {
+        closeBtn.style.display = 'none';
+        modal.addEventListener('click', preventClose);
+    } else {
+        closeBtn.style.display = 'block';
+        modal.onclick = function(event) {
+            if (event.target === modal) {
+                hideUploadModal();
+            }
+        };
+    }
+}
+
+function hideUploadModal() {
+    const modal = document.getElementById('upload-modal');
+    modal.style.display = 'none';
+    modal.removeEventListener('click', preventClose);
+}
+
+function checkFileUploaded() {
+    const fileInput = document.getElementById('file-input');
+    if (!fileInput.value) {
+        alert('You must upload a file before proceeding.');
+        return false;
+    }
+    return true;
+}
+
+function preventClose(event) {
+    if (event.target === document.getElementById('upload-modal')) {
+        event.preventDefault();
+        event.stopPropagation();
+    }
+}
+
+document.addEventListener('DOMContentLoaded', function() {
+    if (initialUploadRequired) {
+        showUploadModal(true);
+    }
+    const fileInput = document.getElementById('file-input');
+    fileInput.addEventListener('change', function() {
+        if (fileInput.value) {
+            document.querySelector('.modal .close').style.display = 'block';
+        }
+    });
+});
+
+
 function displayResults(tkResults, pdfResults, keywords) {
     const tkResultsDiv = document.getElementById("tk-results");
     const pdfResultsDiv = document.getElementById("pdf-results");
@@ -104,18 +143,15 @@ function displayResults(tkResults, pdfResults, keywords) {
     let tkResultsFound = false;
     let pdfResultsFound = false;
 
-    // Function to strip HTML tags
     function stripHtmlTags(str) {
         return str.replace(/<\/?[^>]+(>|$)/g, "");
     }
 
-    // Function to bold the keyword in the sentence
     function boldKeyword(sentence, keyword) {
         const regex = new RegExp(`(${keyword})`, "gi");
         return sentence.replace(regex, "<b>$1</b>");
     }
 
-    // Display Trible Knowledge Results
     if (tkResults.length > 0) {
         tribleKnowledgeHeading.classList.remove("hidden");
 
@@ -173,7 +209,6 @@ function displayResults(tkResults, pdfResults, keywords) {
         tkResultsDiv.innerHTML = `No results found for "${keywords.join(', ')}".`;
     }
 
-    // Display PDF Results
     if (pdfResults.length > 0) {
         pdfResultsHeading.classList.remove("hidden");
 

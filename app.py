@@ -159,10 +159,12 @@ def submit_problem():
 
 @app.route('/')
 def index():
-    if not is_index_file_empty(INDEX_FILE_PATH) and PDF_FILE_PATH is not None:
-        return render_template('index.html')
+    index_empty = is_index_file_empty(INDEX_FILE_PATH)
+    pdf_path_set = PDF_FILE_PATH is not None
+    if not index_empty and pdf_path_set:
+        return render_template('index.html', show_upload_modal=False)
     else:
-        return redirect(url_for('upload_prompt'))
+        return render_template('index.html', show_upload_modal=True)
 
 @app.route('/upload_prompt')
 def upload_prompt():
