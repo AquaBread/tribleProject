@@ -243,6 +243,8 @@ function displayResults(tkResults, pdfResults, keywords) {
                     const link = document.createElement("a");
                     link.innerHTML = `
                         ${boldKeyword(result.Sentence, keyword)}<br>
+                        <b>PDF Title:</b> ${result.Title}<br>
+                        <b>Page Number:</b> ${result['Page Number']}<br>
                     `;
                     link.href = "#";
                     link.onclick = () => intraNavToPdf(result['Page Number']);
