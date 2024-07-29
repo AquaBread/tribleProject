@@ -199,6 +199,7 @@ function displayResults(tkResults, pdfResults, keywords) {
 
     if (pdfResults.length > 0) {
         pdfResultsHeading.classList.remove("hidden");
+        document.getElementById("pdf-title-dropdown").classList.remove("hidden");
         keywords.forEach(keyword => {
             const keywordDiv = document.createElement("div");
             const keywordHeading = document.createElement("h3");
