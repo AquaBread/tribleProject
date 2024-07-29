@@ -168,3 +168,131 @@ h1, h2 {
 .results-container {
     margin-top: 20px;
 }
+
+
+/* Button styling */
+#upload-button, button[type="submit"] {
+    padding: 10px 20px;
+    border: none;
+    border-radius: 5px;
+    background-color: blue;
+    color: #ffffff;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+    margin-bottom: 10px;
+}
+
+#upload-button:hover, button[type="submit"]:hover {
+    background-color: rgb(0, 162, 255);
+}
+
+/* Modal styling */
+.modal {
+    display: none;
+    position: fixed;
+    z-index: 1;
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 100%;
+    overflow: auto;
+    background-color: rgba(0, 0, 0, 0.5);
+}
+
+/* Modal content */
+.modal-content {
+    background-color: #fefefe;
+    margin: 15% auto;
+    padding: 20px;
+    border: 1px solid #888;
+    width: 80%;
+    max-width: 500px;
+    border-radius: 5px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+}
+
+/* Close button */
+.close {
+    color: #aaa;
+    float: right;
+    font-size: 28px;
+    font-weight: bold;
+    cursor: pointer;
+}
+
+.close:hover,
+.close:focus {
+    color: #000;
+    text-decoration: none;
+    cursor: pointer;
+}
+
+/* File input styling */
+#file-input {
+    padding: 10px;
+    border: 1px solid #ced4da;
+    border-radius: 5px;
+    cursor: pointer;
+    background-color: #ffffff;
+    margin-bottom: 10px;
+}
+
+/* Form styling */
+#upload-form {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+/********************** Loading Bar ********************/
+
+.modal {
+    display: none;
+    position: fixed;
+    z-index: 1;
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 100%;
+    overflow: auto;
+    background-color: rgb(0,0,0);
+    background-color: rgba(0,0,0,0.4);
+    padding-top: 60px;
+}
+
+.modal-content {
+    background-color: #fefefe;
+    margin: 5% auto;
+    padding: 20px;
+    border: 1px solid #888;
+    width: 80%;
+}
+
+.close {
+    color: #aaa;
+    float: right;
+    font-size: 28px;
+    font-weight: bold;
+}
+
+.close:hover,
+.close:focus {
+    color: black;
+    text-decoration: none;
+    cursor: pointer;
+}
+
+#loading-container {
+    display: none;
+    margin-top: 20px;
+}
+
+progress {
+    width: 100%;
+    height: 30px;
+}
+
+#progress-text {
+    text-align: center;
+    margin-top: 10px;
+}

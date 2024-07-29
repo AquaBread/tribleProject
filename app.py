@@ -1,66 +1,85 @@
-from flask import Flask, render_template, request, jsonify, send_file  # Flask web framework
-from concurrent.futures import ProcessPoolExecutor, as_completed  # For parallel processing
-from tqdm import tqdm  # For displaying progress bars
-import fitz  # PyMuPDF library for PDF handling
-import re  # Regular expression module for text processing
-import os  # For checking file existence
-import time  # For measuring execution time
-import json  # For handling JSON data
+from flask import Flask, render_template, request, jsonify, send_file, redirect, url_for
+from flask_socketio import SocketIO, emit
+from concurrent.futures import ProcessPoolExecutor, as_completed
+from tqdm import tqdm
+import fitz
+import re
+import os
+import time
+import json
+from werkzeug.utils import secure_filename
 
-app = Flask(__name__) 
+app = Flask(__name__)
+socketio = SocketIO(app)
 
-# Global variables for PDF file path and index file path
-PDF_FILE_PATH = 'Resources/physText.pdf'
-#PDF_FILE_PATH = 'Resources/eldText.pdf'
-#PDF_FILE_PATH = 'Resources/camryManual.pdf'
-INDEX_FILE_PATH = 'Resources/index.json'
-FORUM_FILE_PATH = 'data/tribleKnowledge/tkData.json'  # JSON file for forum data
+UPLOAD_FOLDER = 'resources/uploads'
+app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
+INDEX_FILE_PATH = 'resources/index.json'
+FORUM_FILE_PATH = 'data/tribleKnowledge/tkData.json'
+ALLOWED_EXTENSIONS = {'pdf'}
 
-# Function to extract text and sentences from a page
+PDF_FILE_PATH = INDEX_FILE_PATH
+
+def allowed_file(filename):
+    return '.' in filename and filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
+
 def extract_sentences(page_num, text):
     sentences = re.split(r'(?<!\w.\w.)(?<![A-Z][a-z].)(?<=\.|\?)\s', text)
     return [{'Page Number': page_num + 1, 'Sentence': sentence} for sentence in sentences]
 
-# Pre-process the PDF to create an index and sort it by page number
-def preprocess_pdf(pdf_file):
+def preprocess_pdf(pdf_file, title):
     index = []
     try:
-        pdf_document = fitz.open(pdf_file)  # Open the PDF file
-        total_pages = len(pdf_document)  # Get the total number of pages
+        pdf_document = fitz.open(pdf_file)
+        total_pages = len(pdf_document)
         with ProcessPoolExecutor() as executor:
             futures = []
             for page_num in tqdm(range(total_pages), desc="Preprocessing PDF", unit="page"):
                 future = executor.submit(extract_sentences, page_num, pdf_document.load_page(page_num).get_text("text"))
                 futures.append(future)
+                socketio.emit('progress', {'progress': (page_num + 1) / total_pages * 100})
 
             for future in as_completed(futures):
                 index.extend(future.result())
         index.sort(key=lambda x: x['Page Number'])
     except Exception as e:
         print(f"An error occurred during preprocessing: {e}")
-    return {'physics': index}
+    return {title: index}
 
-# Save the preprocessed index to a JSON file
+def is_pdf_already_uploaded(filename, index_file_path=INDEX_FILE_PATH):
+    """Check if a PDF with the given filename is already in the index."""
+    index = load_index_from_file(index_file_path)
+    # Check if the filename exists in any branch of the index
+    return filename in index
+
+
 def save_index_to_file(index, filename):
     with open(filename, 'w') as file:
-        json.dump(index, file)
+        json.dump(index, file, indent=4)
 
-# Load the preprocessed index from a JSON file
 def load_index_from_file(filename):
-    with open(filename, 'r') as file:
-        return json.load(file)
+    if os.path.exists(filename):
+        with open(filename, 'r') as file:
+            return json.load(file)
+    return {}
 
-# Search for keywords in the preprocessed index
+def is_index_file_empty(filename):
+    if os.path.exists(filename):
+        with open(filename, 'r') as file:
+            data = file.read().strip()
+            return data == "" or data == "{}"
+    return True
+
 def search_keywords_in_index(index, keywords):
     all_data = []
-    for entry in index['physics']:
-        for keyword in keywords:
-            if keyword.lower() in entry['Sentence'].lower():
-                bold_keyword_in_sentence = re.sub(f"(?i)({re.escape(keyword)})", r"<b>\1</b>", entry['Sentence'], flags=re.IGNORECASE)
-                all_data.append({'Keyword': keyword, 'Page Number': entry['Page Number'], 'Sentence': bold_keyword_in_sentence})
+    for title, entries in index.items():
+        for entry in entries:
+            for keyword in keywords:
+                if keyword.lower() in entry['Sentence'].lower():
+                    bold_keyword_in_sentence = re.sub(f"(?i)({re.escape(keyword)})", r"<b>\1</b>", entry['Sentence'], flags=re.IGNORECASE)
+                    all_data.append({'Keyword': keyword, 'Page Number': entry['Page Number'], 'Sentence': bold_keyword_in_sentence, 'Title': title})
     return all_data
 
-# Search for keywords in the tkData.json file
 def search_keywords_in_tkdata(tkdata, keywords):
     results = []
     for entry in tkdata:
@@ -76,38 +95,24 @@ def search_keywords_in_tkdata(tkdata, keywords):
                 })
     return results
 
-# Main function to search keywords in the PDF
 def search_keywords_in_pdf(pdf_file, keywords):
     if not os.path.isfile(pdf_file):
         print("No such file:", os.path.basename(pdf_file))
         return [], 0.0
 
-    start_time = time.time()  # Start measuring time
+    start_time = time.time()
 
     if os.path.isfile(INDEX_FILE_PATH):
-        index = load_index_from_file(INDEX_FILE_PATH)  # Load the index if it exists
+        index = load_index_from_file(INDEX_FILE_PATH)
     else:
-        index = preprocess_pdf(pdf_file)  # Preprocess the PDF to create an index
-        save_index_to_file(index, INDEX_FILE_PATH)  # Save the index to a file
+        index = preprocess_pdf(pdf_file, title=os.path.basename(pdf_file))
+        save_index_to_file(index, INDEX_FILE_PATH)
 
-    found_data = search_keywords_in_index(index, keywords)  # Search for keywords in the index
-
-    end_time = time.time()  # End measuring time
-    duration = end_time - start_time  # Calculate the duration
-
+    found_data = search_keywords_in_index(index, keywords)
+    end_time = time.time()
+    duration = end_time - start_time
     return found_data, duration
 
-# Function to initialize the index
-def initialize_index(pdf_file, index_file):
-    print("Initializing index...")
-    if not os.path.isfile(index_file):
-        index = preprocess_pdf(pdf_file)  # Preprocess the PDF if the index file doesn't exist
-        save_index_to_file(index, index_file)  # Save the index to a file
-        print("PDF preprocessing complete and index saved.")
-    else:
-        print("Index file already exists. Skipping preprocessing.")
-
-# Save forum data to JSON file
 def save_forum_data(name, problem_description, solution, chapter_name, chapter_page):
     forum_data = {
         'Name': name,
@@ -121,7 +126,6 @@ def save_forum_data(name, problem_description, solution, chapter_name, chapter_p
     with open(FORUM_FILE_PATH, 'w') as f:
         json.dump(forum_list, f, indent=4)
 
-# Load forum data from the JSON file
 def load_forum_data():
     if os.path.exists(FORUM_FILE_PATH):
         with open(FORUM_FILE_PATH, 'r') as f:
@@ -129,13 +133,11 @@ def load_forum_data():
     else:
         return []
 
-# Extract the table of contents from the PDF file
 def extract_toc(pdf_file):
     toc = []
     try:
-        pdf_document = fitz.open(pdf_file)  # Open the PDF file
-        toc_data = pdf_document.get_toc()  # Get the table of contents
-
+        pdf_document = fitz.open(pdf_file)
+        toc_data = pdf_document.get_toc()
         for item in toc_data:
             level, title, page = item
             if re.match(r'^\d+\s', title) or re.match(r'^\d+[^.\d]', title):
@@ -144,28 +146,26 @@ def extract_toc(pdf_file):
         print(f"An error occurred while extracting TOC: {e}")
     return toc
 
-def search_keywords_in_tkData(tk_file, keywords):
-    if not os.path.isfile(tk_file):
-        return []
-    
-    with open(tk_file, 'r') as file:
-        tk_data = json.load(file)
+def find_pdf_path(pdf_title, directory='resources/uploads'):
+        # Ensure the title ends with '.pdf'
+        if not pdf_title.lower().endswith('.pdf'):
+            raise ValueError("The provided title must include the '.pdf' extension")
         
-    found_data = []
-    for entry in tk_data:
-        for keyword in keywords:
-            if (keyword.lower() in entry['Problem Description'].lower() or
-                keyword.lower() in entry['Solution'].lower()):
-                bold_problem_description = re.sub(f"(?i)({re.escape(keyword)})", r"<b>\1</b>", entry['Problem Description'], flags=re.IGNORECASE)
-                bold_solution = re.sub(f"(?i)({re.escape(keyword)})", r"<b>\1</b>", entry['Solution'], flags=re.IGNORECASE)
-                found_data.append({
-                    'Name': entry['Name'],
-                    'Problem Description': bold_problem_description,
-                    'Solution': bold_solution,
-                    'Chapter': entry['Chapter'],
-                    'Chapter Page': entry['Chapter Page']
-                })
-    return found_data
+        # Construct the full path for the directory
+        search_directory = os.path.abspath(directory)
+        
+        # Check if the directory exists
+        if not os.path.isdir(search_directory):
+            raise FileNotFoundError(f"The directory '{search_directory}' does not exist")
+        
+        # Search for the PDF file in the directory
+        for root, dirs, files in os.walk(search_directory):
+            if pdf_title in files:
+                # Return the full path of the found PDF file
+                return os.path.join(root, pdf_title)
+        
+        # Return None if the PDF file was not found
+        return None
 
 @app.route('/get_toc')
 def get_toc():
@@ -187,20 +187,33 @@ def submit_problem():
     except Exception as e:
         return jsonify({'error': str(e)}), 400
 
-# Route to render the index page
 @app.route('/')
 def index():
-    return render_template('index.html')
+    index_empty = is_index_file_empty(INDEX_FILE_PATH)
+    pdf_path_set = PDF_FILE_PATH is not None
+    if not index_empty and pdf_path_set:
+        return render_template('index.html', show_upload_modal=False)
+    else:
+        return render_template('index.html', show_upload_modal=True)
 
-# Route to handle search requests
+@app.route('/upload_prompt')
+def upload_prompt():
+    return render_template('upload_prompt.html')
+
 @app.route('/search', methods=['POST'])
 def search():
-    data = request.get_json()  # Get JSON data from the request
+    if is_index_file_empty(INDEX_FILE_PATH):
+        return jsonify({'error': 'Index is empty. Please upload a PDF to search through.'}), 400
+    
+    if PDF_FILE_PATH is None:
+        return jsonify({'error': 'No PDF file has been uploaded. Please upload a PDF to search through.'}), 400
+    
+    data = request.get_json()
     keywords = data['keywords']
-    
-    tk_data = search_keywords_in_tkData(FORUM_FILE_PATH, keywords)  # Search tkData.json first
-    pdf_data, duration = search_keywords_in_pdf(PDF_FILE_PATH, keywords)  # Perform the search in the PDF
-    
+
+    tk_data = search_keywords_in_tkdata(load_forum_data(), keywords)
+    pdf_data, duration = search_keywords_in_pdf(PDF_FILE_PATH, keywords)
+
     response = {
         'results': {
             'tkData': tk_data,
@@ -211,20 +224,66 @@ def search():
     }
     return jsonify(response)
 
-# Route to view the PDF
 @app.route('/view_pdf')
 def view_pdf():
     page_number = request.args.get('page')
-    return send_file(PDF_FILE_PATH)
+    pdf_title = request.args.get('title')
+    
+    if not pdf_title:
+        return "PDF title is required", 400
+
+    # Find the path to the PDF
+    pdf_path = find_pdf_path(pdf_title)
+    
+    if not pdf_path:
+        return "PDF not found", 404
+
+    # Return the PDF file
+    return send_file(pdf_path)
 
 @app.route('/forum')
 def forum():
     return render_template('forum.html')
 
+@app.route('/upload', methods=['POST'])
+def upload_file():
+    if 'file' not in request.files:
+        return redirect(request.url)
+    
+    file = request.files['file']
+    if file.filename == '':
+        return redirect(request.url)
+    
+    if file and allowed_file(file.filename):
+        filename = secure_filename(file.filename)
+        
+        # Check if the PDF is already uploaded
+        if is_pdf_already_uploaded(filename):
+            return jsonify({'error': 'This PDF has already been uploaded.'}), 400
+        
+        file_path = os.path.join(app.config['UPLOAD_FOLDER'], filename)
+        file.save(file_path)
+        
+        global PDF_FILE_PATH
+        PDF_FILE_PATH = file_path  # Ensure this is set correctly
+
+        # Load existing index
+        index = load_index_from_file(INDEX_FILE_PATH)
+
+        # Preprocess the uploaded PDF
+        new_index = preprocess_pdf(PDF_FILE_PATH, title=filename)
+
+        # Merge the new index with the existing index
+        index.update(new_index)
+
+        # Save the merged index back to the file
+        save_index_to_file(index, INDEX_FILE_PATH)
+
+        return redirect(url_for('index'))
+    else:
+        return 'File not allowed', 400
+
 if __name__ == '__main__':
-    # Initialize the index
-    initialize_index(PDF_FILE_PATH, INDEX_FILE_PATH)
-
-    # Start the Flask application
-    app.run(debug=True)
-
+    if not os.path.exists(UPLOAD_FOLDER):
+        os.makedirs(UPLOAD_FOLDER)
+    socketio.run(app, debug=True)
