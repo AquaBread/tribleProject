@@ -63,8 +63,8 @@ function displaySearchInfo(data) {
     document.getElementById("pdf-results-heading").classList.remove("hidden");
 }
 
-function intraNavToPdf(pageNumber) {
-    const url = `/view_pdf?page=${pageNumber}#page=${pageNumber}&toolbar=0&navpanes=0&scrollbar=0`;
+function intraNavToPdf(pageNumber, title) {
+    const url = `/view_pdf?title=${encodeURIComponent(title)}#page=${pageNumber}`;
     window.location.href = url;
 }
 
@@ -129,7 +129,6 @@ document.addEventListener('DOMContentLoaded', function() {
         }
     });
 });
-
 
 function displayResults(tkResults, pdfResults, keywords) {
     const tkResultsDiv = document.getElementById("tk-results");
@@ -247,7 +246,7 @@ function displayResults(tkResults, pdfResults, keywords) {
                         <b>Page Number:</b> ${result['Page Number']}<br>
                     `;
                     link.href = "#";
-                    link.onclick = () => intraNavToPdf(result['Page Number']);
+                    link.onclick = () => intraNavToPdf(result['Page Number'], result.Title);
                     keywordResultsDiv.appendChild(link);
                     keywordResultsDiv.appendChild(document.createElement("br"));
                 });

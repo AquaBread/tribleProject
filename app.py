@@ -139,6 +139,27 @@ def extract_toc(pdf_file):
         print(f"An error occurred while extracting TOC: {e}")
     return toc
 
+def find_pdf_path(pdf_title, directory='resources/uploads'):
+        # Ensure the title ends with '.pdf'
+        if not pdf_title.lower().endswith('.pdf'):
+            raise ValueError("The provided title must include the '.pdf' extension")
+        
+        # Construct the full path for the directory
+        search_directory = os.path.abspath(directory)
+        
+        # Check if the directory exists
+        if not os.path.isdir(search_directory):
+            raise FileNotFoundError(f"The directory '{search_directory}' does not exist")
+        
+        # Search for the PDF file in the directory
+        for root, dirs, files in os.walk(search_directory):
+            if pdf_title in files:
+                # Return the full path of the found PDF file
+                return os.path.join(root, pdf_title)
+        
+        # Return None if the PDF file was not found
+        return None
+
 @app.route('/get_toc')
 def get_toc():
     toc = extract_toc(PDF_FILE_PATH)
@@ -199,7 +220,19 @@ def search():
 @app.route('/view_pdf')
 def view_pdf():
     page_number = request.args.get('page')
-    return send_file(PDF_FILE_PATH)
+    pdf_title = request.args.get('title')
+    
+    if not pdf_title:
+        return "PDF title is required", 400
+
+    # Find the path to the PDF
+    pdf_path = find_pdf_path(pdf_title)
+    
+    if not pdf_path:
+        return "PDF not found", 404
+
+    # Return the PDF file
+    return send_file(pdf_path)
 
 @app.route('/forum')
 def forum():
