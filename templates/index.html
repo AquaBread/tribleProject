@@ -3,13 +3,13 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Trible</title>
+    <title>Traible</title>
     <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='css/styles.css') }}">
     <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.4.0/dist/confetti.browser.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.4.1/socket.io.js"></script>
 </head>
 <body>
-    <h1 id="top"><a href="/" class="tribble-search-link">Trible Search</a></h1>
+    <h1 id="top"><a href="/" class="traible-search-link">Traible Search</a></h1>
 
     <div class="search-container">
         <input type="text" id="keywords" name="keywords" placeholder="Enter Keywords (comma-separated)">
@@ -46,14 +46,14 @@
 
     <div class="container">
         <div class="left-column scrollable">
-            <h2 id="pdf-results-heading" class="hidden"><a href="/" class="tribble-search-link">PDF Results</a></h2>
+            <h2 id="pdf-results-heading" class="hidden"><a href="/" class="traible-search-link">PDF Results</a></h2>
             <div id="pdf-results">
                 <div id="results"></div>
             </div>
         </div>
 
         <div class="right-column scrollable">
-            <h2 id="trible-knowledge-heading" class="hidden">Trible Knowledge</h2>
+            <h2 id="traible-knowledge-heading" class="hidden">Traible Knowledge</h2>
             <div id="tk-results" class="results-container"></div>
         </div>
     </div>

@@ -22,14 +22,14 @@ h1, h2 {
     display: none;
 }
 
-/********************** Style for Trible Search link **********************/
-.tribble-search-link {
+/********************** Style for Traible Search link **********************/
+.traible-search-link {
     color: #333; 
     text-decoration: none; 
     transition: color 0.3s ease;
 }
 
-.tribble-search-link:hover {
+.traible-search-link:hover {
     color: rgb(0, 162, 255);
     cursor: pointer;
 }
@@ -92,7 +92,7 @@ h1, h2 {
     overflow-y: auto;
 }
 
-/********************* Trible Knowledge Forum styles *********************/
+/********************* Traible Knowledge Forum styles *********************/
 #forum-form {
     background-color: #f9f9f9;
     padding: 20px;

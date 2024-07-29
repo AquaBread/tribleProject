@@ -15,7 +15,7 @@ socketio = SocketIO(app)
 UPLOAD_FOLDER = 'resources/uploads'
 app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
 INDEX_FILE_PATH = 'resources/index.json'
-FORUM_FILE_PATH = 'data/tribleKnowledge/tkData.json'
+FORUM_FILE_PATH = 'data/traibleKnowledge/tkData.json'
 ALLOWED_EXTENSIONS = {'pdf'}
 
 PDF_FILE_PATH = INDEX_FILE_PATH

@@ -64,7 +64,7 @@ function displaySearchInfo(data) {
     const searchInfoDiv = document.getElementById("search-info");
     searchInfoDiv.innerHTML = `<b>Search Duration:</b> ${data.duration.toFixed(3)} seconds <br><b>Results Found:</b> ${data.num_results}`;
 
-    document.getElementById("trible-knowledge-heading").classList.remove("hidden");
+    document.getElementById("traible-knowledge-heading").classList.remove("hidden");
     document.getElementById("pdf-results-heading").classList.remove("hidden");
 }
 
@@ -138,7 +138,7 @@ document.addEventListener('DOMContentLoaded', function() {
 function displayResults(tkResults, pdfResults, keywords) {
     const tkResultsDiv = document.getElementById("tk-results");
     const pdfResultsDiv = document.getElementById("pdf-results");
-    const tribleKnowledgeHeading = document.getElementById("trible-knowledge-heading");
+    const traibleKnowledgeHeading = document.getElementById("traible-knowledge-heading");
     const pdfResultsHeading = document.getElementById("pdf-results-heading");
 
     tkResultsDiv.innerHTML = "";
@@ -157,7 +157,7 @@ function displayResults(tkResults, pdfResults, keywords) {
     }
 
     if (tkResults.length > 0) {
-        tribleKnowledgeHeading.classList.remove("hidden");
+        traibleKnowledgeHeading.classList.remove("hidden");
 
         keywords.forEach(keyword => {
             const keywordDiv = document.createElement("div");
