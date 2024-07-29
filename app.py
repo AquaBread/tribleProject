@@ -48,11 +48,13 @@ def preprocess_pdf(pdf_file, title):
 
 def save_index_to_file(index, filename):
     with open(filename, 'w') as file:
-        json.dump(index, file)
+        json.dump(index, file, indent=4)
 
 def load_index_from_file(filename):
-    with open(filename, 'r') as file:
-        return json.load(file)
+    if os.path.exists(filename):
+        with open(filename, 'r') as file:
+            return json.load(file)
+    return {}
 
 def is_index_file_empty(filename):
     if os.path.exists(filename):
@@ -218,8 +220,16 @@ def upload_file():
         global PDF_FILE_PATH
         PDF_FILE_PATH = file_path  # Ensure this is set correctly
 
-        # Preprocess the uploaded PDF and save the index
-        index = preprocess_pdf(PDF_FILE_PATH, title=filename)
+        # Load existing index
+        index = load_index_from_file(INDEX_FILE_PATH)
+
+        # Preprocess the uploaded PDF
+        new_index = preprocess_pdf(PDF_FILE_PATH, title=filename)
+
+        # Merge the new index with the existing index
+        index.update(new_index)
+
+        # Save the merged index back to the file
         save_index_to_file(index, INDEX_FILE_PATH)
 
         return redirect(url_for('index'))
