@@ -28,6 +28,10 @@ document.getElementById('upload-form').addEventListener('submit', function (even
             document.getElementById('progress-text').textContent = '0%';
             document.getElementById('loading-container').style.display = 'none';
             alert('File uploaded successfully!');
+        } else if (xhr.status === 400) {
+            // Handle the specific error from the server
+            const response = JSON.parse(xhr.responseText);
+            alert(response.error || 'Failed to upload file.');
         } else {
             alert('Failed to upload file.');
         }
@@ -35,6 +39,7 @@ document.getElementById('upload-form').addEventListener('submit', function (even
 
     xhr.send(formData);
 });
+
 
 function searchKeywords() {
     const keywordsInput = document.getElementById("keywords").value;

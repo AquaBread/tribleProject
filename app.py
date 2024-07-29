@@ -46,6 +46,13 @@ def preprocess_pdf(pdf_file, title):
         print(f"An error occurred during preprocessing: {e}")
     return {title: index}
 
+def is_pdf_already_uploaded(filename, index_file_path=INDEX_FILE_PATH):
+    """Check if a PDF with the given filename is already in the index."""
+    index = load_index_from_file(index_file_path)
+    # Check if the filename exists in any branch of the index
+    return filename in index
+
+
 def save_index_to_file(index, filename):
     with open(filename, 'w') as file:
         json.dump(index, file, indent=4)
@@ -242,11 +249,18 @@ def forum():
 def upload_file():
     if 'file' not in request.files:
         return redirect(request.url)
+    
     file = request.files['file']
     if file.filename == '':
         return redirect(request.url)
+    
     if file and allowed_file(file.filename):
         filename = secure_filename(file.filename)
+        
+        # Check if the PDF is already uploaded
+        if is_pdf_already_uploaded(filename):
+            return jsonify({'error': 'This PDF has already been uploaded.'}), 400
+        
         file_path = os.path.join(app.config['UPLOAD_FOLDER'], filename)
         file.save(file_path)
         
