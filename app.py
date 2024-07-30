@@ -296,7 +296,6 @@ def upload_file():
     else:
         return 'File not allowed', 400
 
-
 if __name__ == '__main__':
     if not os.path.exists(UPLOAD_FOLDER):
         os.makedirs(UPLOAD_FOLDER)
