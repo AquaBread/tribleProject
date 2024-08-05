@@ -55,7 +55,17 @@
 
     <div class="container">
         <div class="left-column scrollable">
+<<<<<<< HEAD
             <h2 id="pdf-results-heading" class="hidden"><a href="/" class="traible-search-link">PDF Results</a></h2>           
+=======
+            <h2 id="pdf-results-heading" class="hidden"><a href="/" class="traible-search-link">PDF Results</a></h2>
+            <select id="pdf-title-dropdown" class="hidden">
+                <option value="">All PDF Titles</option>
+                {% for title in pdf_titles %}
+                <option value="{{ title }}">{{ title }}</option>
+                {% endfor %}
+            </select>
+>>>>>>> 3f86fbada9bf0b0f8088a59748d7f37727fd1666
             <div id="pdf-results">
                 <div id="results"></div>
             </div>
