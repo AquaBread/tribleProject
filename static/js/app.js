@@ -54,6 +54,7 @@ function searchKeywords() {
     const keywordsInput = document.getElementById("keywords").value;
     const keywords = keywordsInput.split(",").map(keyword => keyword.trim());
     const pdfTitle = document.getElementById("pdf-title-dropdown").value;
+    
 
     fetch('/search', {
         method: 'POST',
@@ -69,7 +70,6 @@ function searchKeywords() {
     })
     .catch(error => console.error('Error:', error));
 }
-
 
 function displaySearchInfo(data) {
     const searchInfoDiv = document.getElementById("search-info");
@@ -151,6 +151,7 @@ function displayResults(tkResults, pdfResults, keywords) {
     const pdfResultsDiv = document.getElementById("pdf-results");
     const traibleKnowledgeHeading = document.getElementById("traible-knowledge-heading");
     const pdfResultsHeading = document.getElementById("pdf-results-heading");
+    const pdfTitleDropdown = document.getElementById('pdf-title-dropdown');
 
     tkResultsDiv.innerHTML = "";
     pdfResultsDiv.innerHTML = "";
@@ -199,6 +200,7 @@ function displayResults(tkResults, pdfResults, keywords) {
 
     if (pdfResults.length > 0) {
         pdfResultsHeading.classList.remove("hidden");
+        pdfTitleDropdown.classList.remove("hidden");
         keywords.forEach(keyword => {
             const keywordDiv = document.createElement("div");
             const keywordHeading = document.createElement("h3");

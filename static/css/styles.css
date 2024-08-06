@@ -19,7 +19,7 @@ h1, h2 {
 
 /********************* Hidden class *********************/
 .hidden {
-    display: none;
+    display: none !important;
 }
 
 /********************** Style for Traible Search link **********************/

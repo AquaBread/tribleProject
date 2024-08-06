@@ -13,12 +13,6 @@
 
     <div class="search-container">
         <input type="text" id="keywords" name="keywords" placeholder="Enter Keywords (comma-separated)">
-        <select id="pdf-title-dropdown">
-            <option value="">Select PDF Title</option>
-            {% for title in pdf_titles %}
-            <option value="{{ title }}">{{ title }}</option>
-            {% endfor %}
-        </select>
         <button onclick="searchKeywords()">Search</button>
         <button onclick="openForum()">Submit a Solution</button>
         <button id="upload-button" onclick="showUploadModal()">Upload a File</button>
@@ -32,6 +26,13 @@
         };
     </script>
     {% endif %}
+    
+    <select id="pdf-title-dropdown", class=hidden>
+        <option value="">Select PDF Title</option>
+        {% for title in pdf_titles %}
+        <option value="{{ title }}">{{ title }}</option>
+        {% endfor %}
+    </select>
 
     <!-- Upload -->
     <div id="upload-modal" class="modal">
